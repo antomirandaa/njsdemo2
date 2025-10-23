@@ -1,16 +1,11 @@
-//import Image from "next/image";
-
 export default function Home() {
-  return <h1>Productos</h1>;
-
-  /*function MiImagen() {
-    return (
-      <Image
-        src="/images/images.jpg"
-        alt="iamgen panda"
-        width={50}
-        height={30} //dasdad
-      />
-    );
-  }*/
+  return (
+    <>
+      <h1>Sobre Nosotros</h1>
+      <h2>
+        Peluches express es una tienda que vende peluches de gran variedad de
+        franquicias, ya sea anime, juegos o animales peluches de animales
+      </h2>
+    </>
+  );
 }
