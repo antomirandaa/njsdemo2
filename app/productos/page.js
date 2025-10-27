@@ -3,11 +3,11 @@
 import Navbar from "@/components/Navbar";
 import ProductCard from "@/components/ProductCard";
 import { productos } from "@/data/productos";
-
+/*
 export const metadata = {
   title: "Productos | Peluches Express",
 };
-
+*/
 export default function ProductosPage() {
   return (
     <>
