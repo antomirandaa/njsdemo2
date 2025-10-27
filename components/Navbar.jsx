@@ -32,15 +32,43 @@ export default function Navbar() {
         </button>
         <div className="collapse navbar-collapse" id="navbarNav">
           <ul className="navbar-nav me-auto mb-2 mb-lg-0">
-            <li className="nav-item"><Link href="/" className="nav-link">Inicio</Link></li>
-            <li className="nav-item"><Link href="/productos" className="nav-link">Productos</Link></li>
-            <li className="nav-item"><Link href="/nosotros" className="nav-link">Nosotros</Link></li>
-            <li className="nav-item"><Link href="/blog" className="nav-link">Blogs</Link></li>
-            <li className="nav-item"><Link href="/contacto" className="nav-link">Contacto</Link></li>
+            <li className="nav-item">
+              <Link href="/" className="nav-link">
+                Inicio
+              </Link>
+            </li>
+            <li className="nav-item">
+              <Link href="/productos" className="nav-link">
+                Productos
+              </Link>
+            </li>
+            <li className="nav-item">
+              <Link href="/nosotros" className="nav-link">
+                Nosotros
+              </Link>
+            </li>
+            <li className="nav-item">
+              <Link href="/blogs" className="nav-link">
+                Blogs
+              </Link>
+            </li>
+            <li className="nav-item">
+              <Link href="/contacto" className="nav-link">
+                Contacto
+              </Link>
+            </li>
           </ul>
           <ul className="navbar-nav">
-            <li className="nav-item"><Link href="/registro" className="nav-link">Registro</Link></li>
-            <li className="nav-item"><Link href="/login" className="nav-link">Login</Link></li>
+            <li className="nav-item">
+              <Link href="/registro" className="nav-link">
+                Registro
+              </Link>
+            </li>
+            <li className="nav-item">
+              <Link href="/login" className="nav-link">
+                Login
+              </Link>
+            </li>
             <li className="nav-item">
               <Link href="/cart" className="nav-link">
                 🛒 Carrito <span className="badge bg-primary">{cartCount}</span>
