@@ -1,4 +1,5 @@
 // app/productos/page.js
+"use client";
 import Navbar from "@/components/Navbar";
 import ProductCard from "@/components/ProductCard";
 import { productos } from "@/data/productos";
