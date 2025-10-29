@@ -1,4 +1,4 @@
-"use client"; // Necesario porque usamos useState y useEffect
+"use client";
 import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 
@@ -6,17 +6,30 @@ export default function CartPage() {
   const [cart, setCart] = useState([]);
   const [message, setMessage] = useState("");
 
-  // Inicializar carrito desde localStorage
   useEffect(() => {
     const storedCart = JSON.parse(localStorage.getItem("cart") || "[]");
     setCart(storedCart);
   }, []);
 
-  // Actualizar localStorage y contar items
   useEffect(() => {
-    localStorage.setItem("cart", JSON.stringify(cart));
+    // Evitar sobrescribir con vacío al cargar por primera vez
+    if (cart.length > 0) {
+      localStorage.setItem("cart", JSON.stringify(cart));
+    }
   }, [cart]);
+  /*
+  useEffect(() => {
+    const firstLoad = sessionStorage.getItem("cartLoaded");
 
+    if (firstLoad) {
+      // Ya cargó antes → podemos guardar incluso si está vacío
+      localStorage.setItem("cart", JSON.stringify(cart));
+    } else {
+      // Primera carga → solo marcar como cargado, sin guardar
+      sessionStorage.setItem("cartLoaded", "true");
+    }
+  }, [cart]);
+  */
   const updateQuantity = (index, cantidad) => {
     const newCart = [...cart];
     newCart[index].cantidad = Math.max(1, cantidad);
@@ -44,7 +57,8 @@ export default function CartPage() {
 
   return (
     <>
-      <Navbar />
+      {/* ✅ Pasamos cartCount al Navbar */}
+      <Navbar cartCount={cart.reduce((acc, item) => acc + item.cantidad, 0)} />
 
       <div className="container mt-4">
         <h2 className="mb-4">Tu carrito</h2>

@@ -9,13 +9,19 @@ export default function ProductCard({ producto }) {
   const addToCart = () => {
     const cart = JSON.parse(localStorage.getItem("cart") || "[]");
     const found = cart.find((item) => item.nombre === producto.nombre);
+
     if (found) {
       found.cantidad += 1;
     } else {
       cart.push({ ...producto, cantidad: 1 });
     }
+
     localStorage.setItem("cart", JSON.stringify(cart));
-    window.dispatchEvent(new Event("storage")); // actualiza Navbar
+
+    // ✅ Avisar al Navbar que el carrito cambió
+    window.dispatchEvent(new Event("cart-updated"));
+
+    // Mostrar mensaje temporal de agregado
     setAdded(true);
     setTimeout(() => setAdded(false), 1000);
   };

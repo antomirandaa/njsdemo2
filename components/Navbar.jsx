@@ -7,13 +7,30 @@ export default function Navbar() {
   const [cartCount, setCartCount] = useState(0);
 
   useEffect(() => {
+    // Actualiza el contador con los datos del localStorage
     const updateCount = () => {
-      const cart = JSON.parse(localStorage.getItem("cart") || "[]");
-      setCartCount(cart.reduce((a, b) => a + b.cantidad, 0));
+      try {
+        const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+        const count = cart.reduce((a, b) => a + (b.cantidad || 0), 0);
+        setCartCount(count);
+      } catch (err) {
+        console.error("Error leyendo carrito:", err);
+      }
     };
+
+    // Primera carga
     updateCount();
+
+    // Escucha cambios del carrito en otras pestañas
     window.addEventListener("storage", updateCount);
-    return () => window.removeEventListener("storage", updateCount);
+
+    // Escucha cambios locales (por ejemplo, cuando agregas productos)
+    window.addEventListener("cart-updated", updateCount);
+
+    return () => {
+      window.removeEventListener("storage", updateCount);
+      window.removeEventListener("cart-updated", updateCount);
+    };
   }, []);
 
   return (
@@ -30,6 +47,7 @@ export default function Navbar() {
         >
           <span className="navbar-toggler-icon"></span>
         </button>
+
         <div className="collapse navbar-collapse" id="navbarNav">
           <ul className="navbar-nav me-auto mb-2 mb-lg-0">
             <li className="nav-item">
@@ -58,6 +76,7 @@ export default function Navbar() {
               </Link>
             </li>
           </ul>
+
           <ul className="navbar-nav">
             <li className="nav-item">
               <Link href="/registro" className="nav-link">
