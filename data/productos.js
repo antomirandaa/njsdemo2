@@ -87,7 +87,7 @@ export const productos = [
   {
     nombre: "Snoopy",
     precio: 10000,
-    imagen: "images/eluches/Snoopy/Snoopy1.PNG",
+    imagen: "images/peluches/Snoopy/Snoopy1.PNG",
   },
   {
     nombre: "Toad",

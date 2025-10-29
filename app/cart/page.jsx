@@ -12,24 +12,21 @@ export default function CartPage() {
   }, []);
 
   useEffect(() => {
-    // Evitar sobrescribir con vacío al cargar por primera vez
     if (cart.length > 0) {
       localStorage.setItem("cart", JSON.stringify(cart));
     }
   }, [cart]);
-  /*
+  /*wawa
   useEffect(() => {
     const firstLoad = sessionStorage.getItem("cartLoaded");
 
     if (firstLoad) {
-      // Ya cargó antes → podemos guardar incluso si está vacío
       localStorage.setItem("cart", JSON.stringify(cart));
     } else {
-      // Primera carga → solo marcar como cargado, sin guardar
       sessionStorage.setItem("cartLoaded", "true");
     }
   }, [cart]);
-  */
+  wawa*/
   const updateQuantity = (index, cantidad) => {
     const newCart = [...cart];
     newCart[index].cantidad = Math.max(1, cantidad);
@@ -57,7 +54,6 @@ export default function CartPage() {
 
   return (
     <>
-      {/* ✅ Pasamos cartCount al Navbar */}
       <Navbar cartCount={cart.reduce((acc, item) => acc + item.cantidad, 0)} />
 
       <div className="container mt-4">

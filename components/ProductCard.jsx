@@ -18,10 +18,10 @@ export default function ProductCard({ producto }) {
 
     localStorage.setItem("cart", JSON.stringify(cart));
 
-    // ✅ Avisar al Navbar que el carrito cambió
+    // cambio navbar
     window.dispatchEvent(new Event("cart-updated"));
 
-    // Mostrar mensaje temporal de agregado
+    // mensaje temporal agregado
     setAdded(true);
     setTimeout(() => setAdded(false), 1000);
   };
