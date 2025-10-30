@@ -7,7 +7,7 @@ export default function Navbar() {
   const [cartCount, setCartCount] = useState(0);
 
   useEffect(() => {
-    // Actualiza el contador con los datos del localStorage
+    // Actualiza el xcontador con los datos del localStorage
     const updateCount = () => {
       try {
         const cart = JSON.parse(localStorage.getItem("cart") || "[]");
