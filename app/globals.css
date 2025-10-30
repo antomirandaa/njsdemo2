@@ -1,21 +1,216 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ====== GLOBAL ====== */
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  background: #fff;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* Botón “Agregar” */
+.btn-agregar {
+  color: #000 !important;
+}
+
+/* ====== NAVBAR ====== */
+.navbar {
+  background: #e0e0e0 !important;
+  padding: 10px 0 !important;
+}
+.navbar .navbar-brand {
+  font-weight: bold;
+}
+.navbar .nav-link.active {
+  font-weight: bold;
+  color: #0074cc !important;
+}
+.navbar .badge {
+  font-size: 1em;
+  vertical-align: middle;
+}
+
+/* ====== PRODUCTOS ====== */
+.products-section {
+  width: 95%;
+  margin: 30px auto;
+}
+.products-section h2 {
+  font-weight: bold;
+}
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 30px;
+}
+.product-card {
+  background: #e0e0e0;
+  border-radius: 6px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 2px 8px #0001;
+  transition: transform 0.15s;
+}
+.product-card:hover {
+  transform: scale(1.03);
+}
+.img-placeholder,
+.product-card img {
+  width: 90%;
+  height: 160px;
+  object-fit: contain;
+  border: 2px solid #888;
+  background: #fafafa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2em;
+  color: #888;
+  margin-bottom: 10px;
+  border-radius: 8px;
+}
+.product-title {
+  color: #3498db;
+  text-align: center;
+  margin-bottom: 5px;
+  font-size: 1.1em;
+  font-weight: bold;
+}
+.product-price {
+  text-align: center;
+  margin-bottom: 8px;
+  font-size: 1.1em;
+  font-weight: bold;
+}
+.add-btn,
+.product-card button {
+  padding: 6px 24px;
+  font-size: 1em;
+  border: 1px solid #333;
+  background: #fff;
+  cursor: pointer;
+  border-radius: 4px;
+  margin-bottom: 5px;
+  transition: background 0.2s;
+}
+.add-btn:hover,
+.product-card button:hover {
+  background: #d1eaff;
+}
+
+/* ====== SECCIÓN PRINCIPAL (Home) ====== */
+.main-section {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  margin: 40px 0 30px 0;
+}
+.main-info {
+  flex: 1;
+  min-width: 300px;
+  padding: 30px;
+}
+.main-info h1 {
+  font-size: 2.5em;
+  margin-bottom: 20px;
+}
+.main-info p {
+  font-size: 1.2em;
+  margin-bottom: 30px;
+}
+.main-info .btn {
+  padding: 12px 40px;
+  font-size: 1.1em;
+  border: 1px solid #0074cc;
+  background: #0074cc;
+  color: #fff;
+  border-radius: 4px;
+  cursor: pointer;
+  text-decoration: none;
+}
+.main-image {
+  flex: 1;
+  min-width: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 320px;
+}
+.main-image img {
+  max-width: 220px;
+  border-radius: 20px;
+}
+
+/* ====== FORMULARIOS ====== */
+.card {
+  box-shadow: 0 2px 8px #0001;
+}
+.form-label {
+  font-weight: 500;
+}
+.was-validated .form-control:invalid,
+.form-control.is-invalid {
+  border-color: #dc3545;
+}
+.was-validated .form-control:valid,
+.form-control.is-valid {
+  border-color: #198754;
+}
+.invalid-feedback {
+  font-size: 0.95em;
+}
+
+/* ====== CARRITO ====== */
+#cart-items .row {
+  border-bottom: 1px solid #ccc;
+  padding-bottom: 8px;
+}
+#cart-items .row:last-child {
+  border-bottom: none;
+}
+#cart-total {
+  font-weight: bold;
+  color: #198754;
+}
+#cart-message {
+  font-size: 1.1em;
+}
+
+/* ====== RESPONSIVE ====== */
+@media (max-width: 1200px) {
+  .products-grid {
+    grid-template-columns: repeat(3, 1fr);
   }
 }
-
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+@media (max-width: 900px) {
+  .products-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .main-section {
+    flex-direction: column;
+    padding: 0 10px;
+  }
+  .main-info,
+  .main-image {
+    min-width: 0;
+    padding: 10px;
+  }
+}
+@media (max-width: 600px) {
+  .products-grid {
+    grid-template-columns: 1fr;
+  }
+  .main-section {
+    flex-direction: column;
+    padding: 0 5px;
+  }
+  .main-info,
+  .main-image {
+    min-width: 0;
+    padding: 5px;
+  }
+  .card {
+    width: 100%;
+    padding: 10px;
+  }
 }
