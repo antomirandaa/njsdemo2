@@ -1,60 +1,73 @@
 // app/productos/page.js
 "use client";
-
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import ProductCard from "@/components/ProductCard";
 import { productos } from "@/data/productos";
 
 export default function ProductosPage() {
-  // Estado para el carrito y el contador
-  const [cart, setCart] = useState([]);
-  const [cartCount, setCartCount] = useState(0);
+  // Estado para la categoría seleccionada (por defecto 1)
+  const [categoriaSeleccionada, setCategoriaSeleccionada] = useState(1);
 
-  // Cargar carrito desde localStorage al montar
-  useEffect(() => {
-    const storedCart = JSON.parse(localStorage.getItem("cart") || "[]");
-    setCart(storedCart);
-    setCartCount(storedCart.reduce((acc, item) => acc + item.cantidad, 0));
-  }, []);
-
-  // Función para agregar al carrito
-  const addToCart = (producto) => {
-    const updatedCart = [...cart];
-    const found = updatedCart.find((item) => item.nombre === producto.nombre);
-
-    if (found) {
-      found.cantidad += 1;
-    } else {
-      updatedCart.push({ ...producto, cantidad: 1 });
-    }
-
-    // Guardar en localStorage
-    localStorage.setItem("cart", JSON.stringify(updatedCart));
-
-    // Actualizar estado
-    setCart(updatedCart);
-    setCartCount(updatedCart.reduce((acc, item) => acc + item.cantidad, 0));
-  };
+  // Filtrar productos según la categoría
+  const productosFiltrados = productos.filter(
+    (p) => p.categoria === categoriaSeleccionada
+  );
 
   return (
     <>
-      {/* Pasamos el contador al Navbar */}
-      <Navbar cartCount={cartCount} />
+      <Navbar />
 
       <div className="container my-5">
-        <h2 className="text-center mb-4">Categorias</h2>
-        /*SADADADAS */
+        <h2 className="text-center mb-4">Nuestros productos</h2>
+
+        {/* 🔸 Selector de categorías */}
+        <div className="d-flex justify-content-center mb-4">
+          <div className="btn-group" role="group">
+            <button
+              className={`btn ${
+                categoriaSeleccionada === 1
+                  ? "btn-primary"
+                  : "btn-outline-primary"
+              }`}
+              onClick={() => setCategoriaSeleccionada(1)}
+            >
+              Animales
+            </button>
+            <button
+              className={`btn ${
+                categoriaSeleccionada === 2
+                  ? "btn-primary"
+                  : "btn-outline-primary"
+              }`}
+              onClick={() => setCategoriaSeleccionada(2)}
+            >
+              Nintendo
+            </button>
+            <button
+              className={`btn ${
+                categoriaSeleccionada === 3
+                  ? "btn-primary"
+                  : "btn-outline-primary"
+              }`}
+              onClick={() => setCategoriaSeleccionada(3)}
+            >
+              BTR
+            </button>
+          </div>
+        </div>
+
+        {/* 🔹 Productos filtrados */}
         <div className="row g-4">
-          {productos.map((prod, i) => (
-            <div key={i} className="col-6 col-md-3">
-              {/* Pasamos la función addToCart al componente ProductCard */}
-              <ProductCard
-                producto={prod}
-                onAddToCart={() => addToCart(prod)}
-              />
-            </div>
-          ))}
+          {productosFiltrados.length > 0 ? (
+            productosFiltrados.map((prod, i) => (
+              <div key={i} className="col-6 col-md-3">
+                <ProductCard producto={prod} />
+              </div>
+            ))
+          ) : (
+            <p className="text-center">No hay productos en esta categoría.</p>
+          )}
         </div>
       </div>
     </>
