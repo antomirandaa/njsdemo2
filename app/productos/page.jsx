@@ -43,8 +43,8 @@ export default function ProductosPage() {
       <Navbar cartCount={cartCount} />
 
       <div className="container my-5">
-        <h2 className="text-center mb-4">Todos los productos</h2>
-
+        <h2 className="text-center mb-4">Categorias</h2>
+        /*SADADADAS */
         <div className="row g-4">
           {productos.map((prod, i) => (
             <div key={i} className="col-6 col-md-3">

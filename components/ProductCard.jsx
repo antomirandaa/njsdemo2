@@ -1,4 +1,3 @@
-// components/ProductCard.jsx
 "use client";
 import Image from "next/image";
 import { useState } from "react";
@@ -37,7 +36,7 @@ export default function ProductCard({ producto }) {
       />
       <div className="card-body">
         <h5 className="card-title">{producto.nombre}</h5>
-        <p className="card-text">${producto.precio.toLocaleString()}</p>
+        <p className="card-text">${producto.precio}</p>
         <button className="btn btn-success" onClick={addToCart}>
           {added ? "¡Agregado!" : "Agregar"}
         </button>
