@@ -1,4 +1,3 @@
-// components/Navbar.jsx
 "use client";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -7,24 +6,16 @@ export default function Navbar() {
   const [cartCount, setCartCount] = useState(0);
 
   useEffect(() => {
-    // Actualiza el xcontador con los datos del localStorage
     const updateCount = () => {
-      try {
-        const cart = JSON.parse(localStorage.getItem("cart") || "[]");
-        const count = cart.reduce((a, b) => a + (b.cantidad || 0), 0);
-        setCartCount(count);
-      } catch (err) {
-        console.error("Error leyendo carrito:", err);
-      }
+      const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+      setCartCount(cart.reduce((a, b) => a + b.cantidad, 0));
     };
 
-    // Primera carga
+    // Inicializa contador
     updateCount();
 
-    // Escucha cambios del carrito en otras pestañas
+    // Escucha cambios de carrito (entre páginas y dentro de la misma)
     window.addEventListener("storage", updateCount);
-
-    // Escucha cambios locales (por ejemplo, cuando agregas productos)
     window.addEventListener("cart-updated", updateCount);
 
     return () => {
@@ -47,7 +38,6 @@ export default function Navbar() {
         >
           <span className="navbar-toggler-icon"></span>
         </button>
-
         <div className="collapse navbar-collapse" id="navbarNav">
           <ul className="navbar-nav me-auto mb-2 mb-lg-0">
             <li className="nav-item">
@@ -58,11 +48,6 @@ export default function Navbar() {
             <li className="nav-item">
               <Link href="/productos" className="nav-link">
                 Productos
-              </Link>
-            </li>
-            <li className="nav-item">
-              <Link href="/ofertas" className="nav-link">
-                Ofertas
               </Link>
             </li>
             <li className="nav-item">
@@ -80,8 +65,12 @@ export default function Navbar() {
                 Contacto
               </Link>
             </li>
+            <li className="nav-item">
+              <Link href="/ofertas" className="nav-link">
+                Ofertas
+              </Link>
+            </li>
           </ul>
-
           <ul className="navbar-nav">
             <li className="nav-item">
               <Link href="/registro" className="nav-link">

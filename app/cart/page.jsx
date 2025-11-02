@@ -14,9 +14,9 @@ export default function CartPage() {
   }, []);
 
   useEffect(() => {
-    // ⚠️ Solo guardamos si hay productos, para evitar el bug al abrir el carrito
     if (cart.length >= 1) {
       localStorage.setItem("cart", JSON.stringify(cart));
+      window.dispatchEvent(new Event("cart-updated")); // ✅ actualiza Navbar
     }
   }, [cart]);
 
@@ -24,19 +24,20 @@ export default function CartPage() {
     const newCart = [...cart];
     newCart[index].cantidad = Math.max(1, cantidad);
     setCart(newCart);
+    window.dispatchEvent(new Event("cart-updated")); // ✅ actualiza Navbar
   };
 
   const removeItem = (index) => {
     const newCart = [...cart];
     newCart.splice(index, 1);
     setCart(newCart);
+    window.dispatchEvent(new Event("cart-updated")); // ✅ actualiza Navbar
   };
 
-  // ✅ Arreglado: ahora sí vacía localStorage y actualiza el contador del Navbar
   const clearCart = () => {
-    localStorage.removeItem("cart"); // elimina por completo del almacenamiento
-    setCart([]); // limpia el estado actual
-    window.dispatchEvent(new Event("storage")); // actualiza el Navbar
+    localStorage.removeItem("cart");
+    setCart([]);
+    window.dispatchEvent(new Event("cart-updated")); // ✅ actualiza Navbar
     setMessage("🗑️ Carrito vaciado correctamente");
     setTimeout(() => setMessage(""), 3000);
   };
