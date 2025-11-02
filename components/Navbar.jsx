@@ -70,11 +70,6 @@ export default function Navbar() {
                 Contacto
               </Link>
             </li>
-            <li className="nav-item">
-              <Link href="/ofertas" className="nav-link">
-                Ofertas
-              </Link>
-            </li>
           </ul>
           <ul className="navbar-nav">
             <li className="nav-item">
