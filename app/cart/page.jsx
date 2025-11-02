@@ -1,10 +1,12 @@
 "use client";
+import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 
 export default function CartPage() {
   const [cart, setCart] = useState([]);
   const [message, setMessage] = useState("");
+  const router = useRouter();
 
   useEffect(() => {
     const storedCart = JSON.parse(localStorage.getItem("cart") || "[]");
@@ -14,6 +16,7 @@ export default function CartPage() {
   useEffect(() => {
     if (cart.length >= 1) {
       localStorage.setItem("cart", JSON.stringify(cart));
+      window.dispatchEvent(new Event("cart-updated")); // ✅ actualiza Navbar
     }
   }, [cart]);
 
@@ -21,19 +24,21 @@ export default function CartPage() {
     const newCart = [...cart];
     newCart[index].cantidad = Math.max(1, cantidad);
     setCart(newCart);
+    window.dispatchEvent(new Event("cart-updated")); // ✅ actualiza Navbar
   };
 
   const removeItem = (index) => {
     const newCart = [...cart];
     newCart.splice(index, 1);
     setCart(newCart);
+    window.dispatchEvent(new Event("cart-updated")); // ✅ actualiza Navbar
   };
 
-  const clearCart = () => setCart([]);
-
-  const checkout = () => {
+  const clearCart = () => {
+    localStorage.removeItem("cart");
     setCart([]);
-    setMessage("¡Gracias por tu compra!");
+    window.dispatchEvent(new Event("cart-updated")); // ✅ actualiza Navbar
+    setMessage("🗑️ Carrito vaciado correctamente");
     setTimeout(() => setMessage(""), 3000);
   };
 
@@ -90,7 +95,7 @@ export default function CartPage() {
           <h4>Total: ${total}</h4>
           <button
             className="btn btn-success me-2"
-            onClick={checkout}
+            onClick={() => router.push("/checkout")}
             disabled={cart.length === 0}
           >
             Finalizar compra
@@ -105,7 +110,7 @@ export default function CartPage() {
         </div>
 
         {message && (
-          <div className="alert alert-success mt-3" role="alert">
+          <div className="alert alert-warning mt-3" role="alert">
             {message}
           </div>
         )}
