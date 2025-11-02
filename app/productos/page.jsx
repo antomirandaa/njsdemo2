@@ -19,8 +19,45 @@ export default function ProductosPage() {
       <Navbar />
 
       <div className="container my-5">
-        <h2 className="text-center mb-4">Categorias</h2>
-        /*SADADADAS */
+        <h2 className="text-center mb-4">Nuestros productos</h2>
+
+        {/* 🔸 Selector de categorías */}
+        <div className="d-flex justify-content-center mb-4">
+          <div className="btn-group" role="group">
+            <button
+              className={`btn ${
+                categoriaSeleccionada === 1
+                  ? "btn-primary"
+                  : "btn-outline-primary"
+              }`}
+              onClick={() => setCategoriaSeleccionada(1)}
+            >
+              Animales
+            </button>
+            <button
+              className={`btn ${
+                categoriaSeleccionada === 2
+                  ? "btn-primary"
+                  : "btn-outline-primary"
+              }`}
+              onClick={() => setCategoriaSeleccionada(2)}
+            >
+              Nintendo
+            </button>
+            <button
+              className={`btn ${
+                categoriaSeleccionada === 3
+                  ? "btn-primary"
+                  : "btn-outline-primary"
+              }`}
+              onClick={() => setCategoriaSeleccionada(3)}
+            >
+              BTR
+            </button>
+          </div>
+        </div>
+
+        {/* 🔹 Productos filtrados */}
         <div className="row g-4">
           {productosFiltrados.length > 0 ? (
             productosFiltrados.map((prod, i) => (
