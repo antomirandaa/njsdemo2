@@ -1,4 +1,5 @@
 "use client";
+import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 
@@ -41,7 +42,7 @@ export default function CartPage() {
     (sum, item) => sum + item.precio * item.cantidad,
     0
   );
-
+  const router = useRouter();
   return (
     <>
       <Navbar cartCount={cart.reduce((acc, item) => acc + item.cantidad, 0)} />
@@ -90,7 +91,7 @@ export default function CartPage() {
           <h4>Total: ${total}</h4>
           <button
             className="btn btn-success me-2"
-            onClick={checkout}
+            onClick={() => router.push("/checkout")}
             disabled={cart.length === 0}
           >
             Finalizar compra
