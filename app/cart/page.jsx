@@ -6,6 +6,7 @@ import Navbar from "@/components/Navbar";
 export default function CartPage() {
   const [cart, setCart] = useState([]);
   const [message, setMessage] = useState("");
+  const router = useRouter();
 
   useEffect(() => {
     const storedCart = JSON.parse(localStorage.getItem("cart") || "[]");
@@ -13,6 +14,7 @@ export default function CartPage() {
   }, []);
 
   useEffect(() => {
+    // ⚠️ Solo guardamos si hay productos, para evitar el bug al abrir el carrito
     if (cart.length >= 1) {
       localStorage.setItem("cart", JSON.stringify(cart));
     }
@@ -30,11 +32,12 @@ export default function CartPage() {
     setCart(newCart);
   };
 
-  const clearCart = () => setCart([]);
-
-  const checkout = () => {
-    setCart([]);
-    setMessage("¡Gracias por tu compra!");
+  // ✅ Arreglado: ahora sí vacía localStorage y actualiza el contador del Navbar
+  const clearCart = () => {
+    localStorage.removeItem("cart"); // elimina por completo del almacenamiento
+    setCart([]); // limpia el estado actual
+    window.dispatchEvent(new Event("storage")); // actualiza el Navbar
+    setMessage("🗑️ Carrito vaciado correctamente");
     setTimeout(() => setMessage(""), 3000);
   };
 
@@ -42,7 +45,7 @@ export default function CartPage() {
     (sum, item) => sum + item.precio * item.cantidad,
     0
   );
-  const router = useRouter();
+
   return (
     <>
       <Navbar cartCount={cart.reduce((acc, item) => acc + item.cantidad, 0)} />
@@ -106,7 +109,7 @@ export default function CartPage() {
         </div>
 
         {message && (
-          <div className="alert alert-success mt-3" role="alert">
+          <div className="alert alert-warning mt-3" role="alert">
             {message}
           </div>
         )}
