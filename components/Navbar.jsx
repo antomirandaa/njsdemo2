@@ -4,6 +4,10 @@ import { useEffect, useState } from "react";
 
 export default function Navbar() {
   const [cartCount, setCartCount] = useState(0);
+  useEffect(() => {
+    // Carga dinámica solo del JS de Bootstrap
+    import("bootstrap/dist/js/bootstrap.bundle.min.js");
+  }, []);
 
   useEffect(() => {
     const updateCount = () => {
