@@ -12,21 +12,11 @@ export default function CartPage() {
   }, []);
 
   useEffect(() => {
-    if (cart.length > 0) {
+    if (cart.length >= 1) {
       localStorage.setItem("cart", JSON.stringify(cart));
     }
   }, [cart]);
-  /*wawa
-  useEffect(() => {
-    const firstLoad = sessionStorage.getItem("cartLoaded");
 
-    if (firstLoad) {
-      localStorage.setItem("cart", JSON.stringify(cart));
-    } else {
-      sessionStorage.setItem("cartLoaded", "true");
-    }
-  }, [cart]);
-  wawa*/
   const updateQuantity = (index, cantidad) => {
     const newCart = [...cart];
     newCart[index].cantidad = Math.max(1, cantidad);
@@ -72,7 +62,7 @@ export default function CartPage() {
                 />
               </div>
               <div className="col-4">{item.nombre}</div>
-              <div className="col-2">${item.precio.toLocaleString()}</div>
+              <div className="col-2">${item.precio}</div>
               <div className="col-2">
                 <input
                   type="number"
@@ -97,7 +87,7 @@ export default function CartPage() {
         )}
 
         <div className="mt-4">
-          <h4>Total: ${total.toLocaleString()}</h4>
+          <h4>Total: ${total}</h4>
           <button
             className="btn btn-success me-2"
             onClick={checkout}
