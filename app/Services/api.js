@@ -40,7 +40,7 @@ export async function registrarUsuario(datos) {
  * Body: { correo, password }
  */
 export async function loginUsuario(correo, password) {
-  const resp = await fetch(`${USUARIOS_BASE_URL}/api/v1/usuarios`, {
+  const resp = await fetch(`${USUARIOS_BASE_URL}/api/v1/usuarios/login`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
