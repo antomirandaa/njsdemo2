@@ -4,15 +4,21 @@ import { useEffect, useState } from "react";
 
 export default function Navbar() {
   const [cartCount, setCartCount] = useState(0);
+
   useEffect(() => {
-    // Carga dinámica solo del JS de Bootstrap
+    // Carga dinámica del JS de Bootstrap
     import("bootstrap/dist/js/bootstrap.bundle.min.js");
   }, []);
 
   useEffect(() => {
     const updateCount = () => {
+      if (typeof window === "undefined") return;
       const cart = JSON.parse(localStorage.getItem("cart") || "[]");
-      setCartCount(cart.reduce((a, b) => a + b.cantidad, 0));
+      const total = cart.reduce(
+        (acc, item) => acc + (item.cantidad || 1),
+        0
+      );
+      setCartCount(total);
     };
 
     // Inicializa contador
@@ -29,26 +35,26 @@ export default function Navbar() {
   }, []);
 
   return (
-    <nav className="navbar navbar-expand-lg navbar-light bg-light">
-      <div className="container-fluid">
-        <Link href="/" className="navbar-brand">
+    <nav className="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
+      <div className="container">
+        <Link href="/" className="navbar-brand fw-bold">
           Peluches Express
         </Link>
+
         <button
           className="navbar-toggler"
           type="button"
           data-bs-toggle="collapse"
-          data-bs-target="#navbarNav"
+          data-bs-target="#mainNavbar"
+          aria-controls="mainNavbar"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
         >
-          <span className="navbar-toggler-icon"></span>
+          <span className="navbar-toggler-icon" />
         </button>
-        <div className="collapse navbar-collapse" id="navbarNav">
+
+        <div className="collapse navbar-collapse" id="mainNavbar">
           <ul className="navbar-nav me-auto mb-2 mb-lg-0">
-            <li className="nav-item">
-              <Link href="/" className="nav-link">
-                Inicio
-              </Link>
-            </li>
             <li className="nav-item">
               <Link href="/productos" className="nav-link">
                 Productos
@@ -60,35 +66,30 @@ export default function Navbar() {
               </Link>
             </li>
             <li className="nav-item">
-              <Link href="/nosotros" className="nav-link">
-                Nosotros
-              </Link>
-            </li>
-            <li className="nav-item">
-              <Link href="/blogs" className="nav-link">
-                Blogs
-              </Link>
-            </li>
-            <li className="nav-item">
               <Link href="/contacto" className="nav-link">
                 Contacto
               </Link>
             </li>
           </ul>
-          <ul className="navbar-nav">
-            <li className="nav-item">
-              <Link href="/registro" className="nav-link">
-                Registro
-              </Link>
-            </li>
+
+          <ul className="navbar-nav ms-auto mb-2 mb-lg-0">
             <li className="nav-item">
               <Link href="/login" className="nav-link">
                 Login
               </Link>
             </li>
             <li className="nav-item">
-              <Link href="/cart" className="nav-link">
-                🛒 Carrito <span className="badge bg-primary">{cartCount}</span>
+              <Link href="/registro" className="nav-link">
+                Registro
+              </Link>
+            </li>
+            <li className="nav-item">
+              <Link
+                href="/cart"
+                className="nav-link d-flex align-items-center"
+              >
+                🛒 Carrito
+                <span className="badge bg-primary ms-1">{cartCount}</span>
               </Link>
             </li>
           </ul>
