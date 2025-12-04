@@ -19,7 +19,7 @@ export default function ProductosPage() {
       <Navbar />
 
       <div className="container my-5">
-        <h2 className="text-center mb-4">Nuestros productos</h2>
+        <h2 className="text-center mb-4">Nuestros Productos</h2>
 
         {/* 🔸 Selector de categorías */}
         <div className="d-flex justify-content-center mb-4">
