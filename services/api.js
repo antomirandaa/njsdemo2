@@ -1,20 +1,20 @@
 // services/api.js
 
-// URL base de tu backend en Railway
 export const API_BASE_URL =
   "https://microservicio-productos-production-544a.up.railway.app";
 
-// Credenciales para endpoints que usan Basic Auth (pagos, etc.)
-const BASIC_AUTH_ADMIN = "Basic " + btoa("admin:admin123");
+// Si usas endpoints protegidos con Basic Auth (ADMIN)
+export const BASIC_AUTH_ADMIN =
+  typeof btoa !== "undefined"
+    ? "Basic " + btoa("admin:admin123")
+    : "Basic " + Buffer.from("admin:admin123").toString("base64");
 
-// =============== USUARIOS =====================
+// ================= USUARIOS ===================
 
-/**
- * Registro de usuario.
- * POST /api/v1/usuarios
- */
+// Registro de usuario: POST /api/v1/usuarios/registro
 export async function registrarUsuario(datos) {
-  const resp = await fetch(`${API_BASE_URL}/api/v1/usuarios`, {
+  // datos = { nombre, correo, password, region, comuna }
+  const resp = await fetch(`${API_BASE_URL}/api/v1/usuarios/registro`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -30,12 +30,8 @@ export async function registrarUsuario(datos) {
   return resp.json();
 }
 
-/**
- * Login de usuario.
- * POST /api/v1/usuarios/login
- * Body: { correo, password }
- */
-export async function loginUsuario(correo, password) {
+// Login de usuario: POST /api/v1/usuarios/login
+export async function loginUsuario({ correo, password }) {
   const resp = await fetch(`${API_BASE_URL}/api/v1/usuarios/login`, {
     method: "POST",
     headers: {
@@ -46,19 +42,16 @@ export async function loginUsuario(correo, password) {
 
   if (!resp.ok) {
     const msg = await resp.text().catch(() => "");
-    throw new Error(msg || "Usuario o contraseña incorrectos");
+    throw new Error(msg || "Error al iniciar sesión");
   }
 
-  return resp.json();
+  return resp.json(); // aquí te debería venir un UsuarioResponse
 }
 
-// =============== PRODUCTOS =====================
+// ================= PRODUCTOS ===================
 
-/**
- * Obtiene la lista de productos.
- * GET /api/v1/productos
- */
-export async function obtenerProductos() {
+// GET /api/v1/productos
+export async function listarProductos() {
   const resp = await fetch(`${API_BASE_URL}/api/v1/productos`, {
     method: "GET",
   });
@@ -70,19 +63,11 @@ export async function obtenerProductos() {
   return resp.json();
 }
 
-// =============== PAGOS =====================
+// ================= PAGOS ===================
 
-/**
- * Crea un pago/boleta.
- * POST /api/v1/pagos
- *
- * @param {number} usuarioId
- * @param {string} metodoPago
- * @param {Array<{ productoId:number, cantidad:number, precioUnitario:number }>} items
- */
-export async function crearPago(usuarioId, metodoPago, items) {
-  const payload = { usuarioId, metodoPago, items };
-
+// POST /api/v1/pagos (requiere admin/admin123 en Basic Auth)
+export async function registrarPago(payload) {
+  // payload = { usuarioId, items: [ { productoId, cantidad } ] } según tu DTO
   const resp = await fetch(`${API_BASE_URL}/api/v1/pagos`, {
     method: "POST",
     headers: {
