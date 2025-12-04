@@ -10,7 +10,7 @@ export default function ProductosPage() {
   const [carrito, setCarrito] = useState([]);
   const [error, setError] = useState("");
 
-  // Cargar productos
+  // Cargar productos del backend
   useEffect(() => {
     const cargarProductos = async () => {
       try {
@@ -22,23 +22,24 @@ export default function ProductosPage() {
         setError("No se pudieron cargar los productos.");
       }
     };
+
     cargarProductos();
   }, []);
 
   // Cargar carrito desde localStorage al montar
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const almacenado = localStorage.getItem("carrito");
-    if (almacenado) {
-      try {
+    try {
+      const almacenado = localStorage.getItem("cart");
+      if (almacenado) {
         setCarrito(JSON.parse(almacenado));
-      } catch (e) {
-        console.error("Error al leer carrito de localStorage", e);
       }
+    } catch (e) {
+      console.error("Error al leer carrito de localStorage", e);
     }
   }, []);
 
-  // Función para añadir al carrito
+  // Añadir un producto al carrito
   const agregarAlCarrito = (producto) => {
     setCarrito((carritoActual) => {
       const copia = [...carritoActual];
@@ -54,12 +55,12 @@ export default function ProductosPage() {
       }
 
       if (typeof window !== "undefined") {
-        localStorage.setItem("carrito", JSON.stringify(copia));
+        localStorage.setItem("cart", JSON.stringify(copia));
+        // Notificar a Navbar y otras páginas
+        window.dispatchEvent(new Event("cart-updated"));
       }
 
-      // Mensaje simple para verificar que funciona
       alert(`${producto.nombre} fue añadido al carrito 🛒`);
-
       return copia;
     });
   };
@@ -72,27 +73,31 @@ export default function ProductosPage() {
   return (
     <>
       <Navbar />
-      <div className="container mt-4">
-        <div className="d-flex justify-content-between align-items-center mb-3">
-          <h1>Productos</h1>
-          <span className="badge bg-primary fs-6">
-            Carrito: {totalItems} item(s)
+
+      <div className="container my-4">
+        <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-2">
+          <h2 className="mb-0">Todos los productos</h2>
+          <span className="badge bg-success">
+            En carrito: {totalItems} producto{totalItems === 1 ? "" : "s"}
           </span>
         </div>
 
         {error && (
-          <div className="alert alert-danger mt-3" role="alert">
+          <div className="alert alert-danger" role="alert">
             {error}
           </div>
         )}
 
-        <div className="row mt-3">
+        <div className="row g-4">
           {productos.length === 0 && !error && (
             <p>No hay productos disponibles.</p>
           )}
 
           {productos.map((p) => (
-            <div key={p.id} className="col-12 col-sm-6 col-md-4 col-lg-3 mb-3">
+            <div
+              key={p.id}
+              className="col-12 col-sm-6 col-md-4 col-lg-3 d-flex"
+            >
               <ProductCard producto={p} onAgregar={agregarAlCarrito} />
             </div>
           ))}
