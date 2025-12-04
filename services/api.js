@@ -1,9 +1,10 @@
 // services/api.js
 
+// URL base de tu backend en Railway
 export const API_BASE_URL =
   "https://microservicio-productos-production-544a.up.railway.app";
 
-// Si usas endpoints protegidos con Basic Auth (ADMIN)
+// Si usas endpoints protegidos con Basic Auth (ADMIN) para pagos u otros
 export const BASIC_AUTH_ADMIN =
   typeof btoa !== "undefined"
     ? "Basic " + btoa("admin:admin123")
@@ -45,29 +46,31 @@ export async function loginUsuario({ correo, password }) {
     throw new Error(msg || "Error al iniciar sesión");
   }
 
-  return resp.json(); // aquí te debería venir un UsuarioResponse
+  return resp.json(); // UsuarioResponse
 }
 
 // ================= PRODUCTOS ===================
 
-// GET /api/v1/productos
-export async function listarProductos() {
+// Obtener lista de productos: GET /api/v1/productos
+export async function obtenerProductos() {
   const resp = await fetch(`${API_BASE_URL}/api/v1/productos`, {
     method: "GET",
   });
 
   if (!resp.ok) {
-    throw new Error("Error al obtener productos");
+    const msg = await resp.text().catch(() => "");
+    throw new Error(msg || "Error al obtener los productos");
   }
 
-  return resp.json();
+  return resp.json(); // Array de productos
 }
 
-// ================= PAGOS ===================
+// ================= PAGOS (opcional) ===================
 
-// POST /api/v1/pagos (requiere admin/admin123 en Basic Auth)
+// Ejemplo: registrar pago (si lo tienes en el backend)
+// Ajusta el payload a tu DTO real.
 export async function registrarPago(payload) {
-  // payload = { usuarioId, items: [ { productoId, cantidad } ] } según tu DTO
+  // payload = { usuarioId, items: [ { productoId, cantidad } ] }
   const resp = await fetch(`${API_BASE_URL}/api/v1/pagos`, {
     method: "POST",
     headers: {
