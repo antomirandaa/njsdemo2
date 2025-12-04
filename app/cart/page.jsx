@@ -8,48 +8,50 @@ export default function CartPage() {
   const [message, setMessage] = useState("");
   const router = useRouter();
 
+  // Cargar carrito inicial
   useEffect(() => {
+    if (typeof window === "undefined") return;
     const storedCart = JSON.parse(localStorage.getItem("cart") || "[]");
     setCart(storedCart);
   }, []);
 
+  // Guardar cambios y notificar Navbar
   useEffect(() => {
-    if (cart.length >= 1) {
-      localStorage.setItem("cart", JSON.stringify(cart));
-      window.dispatchEvent(new Event("cart-updated")); // ✅ actualiza Navbar
-    }
+    if (typeof window === "undefined") return;
+    localStorage.setItem("cart", JSON.stringify(cart));
+    window.dispatchEvent(new Event("storage"));
   }, [cart]);
 
   const updateQuantity = (index, cantidad) => {
-    const newCart = [...cart];
-    newCart[index].cantidad = Math.max(1, cantidad);
-    setCart(newCart);
-    window.dispatchEvent(new Event("cart-updated")); // ✅ actualiza Navbar
+    if (cantidad < 1) return;
+    setCart((prev) => {
+      const nuevo = [...prev];
+      nuevo[index] = { ...nuevo[index], cantidad };
+      return nuevo;
+    });
   };
 
   const removeItem = (index) => {
-    const newCart = [...cart];
-    newCart.splice(index, 1);
-    setCart(newCart);
-    window.dispatchEvent(new Event("cart-updated")); // ✅ actualiza Navbar
+    setCart((prev) => prev.filter((_, i) => i !== index));
   };
 
   const clearCart = () => {
-    localStorage.removeItem("cart");
     setCart([]);
-    window.dispatchEvent(new Event("cart-updated")); // ✅ actualiza Navbar
-    setMessage("🗑️ Carrito vaciado correctamente");
-    setTimeout(() => setMessage(""), 3000);
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("cart");
+      window.dispatchEvent(new Event("storage"));
+    }
+    setMessage("Carrito vaciado.");
   };
 
   const total = cart.reduce(
-    (sum, item) => sum + item.precio * item.cantidad,
+    (acc, item) => acc + (item.precio || 0) * (item.cantidad || 1),
     0
   );
 
   return (
     <>
-      <Navbar cartCount={cart.reduce((acc, item) => acc + item.cantidad, 0)} />
+      <Navbar />
 
       <div className="container mt-4">
         <h2 className="mb-4">Tu carrito</h2>
@@ -57,57 +59,81 @@ export default function CartPage() {
         {cart.length === 0 ? (
           <div className="alert alert-info">Tu carrito está vacío.</div>
         ) : (
-          cart.map((item, i) => (
-            <div className="row align-items-center mb-3" key={i}>
-              <div className="col-2">
-                <img
-                  src={item.imagen}
-                  alt={item.nombre}
-                  style={{ width: "60px" }}
-                />
+          <>
+            {cart.map((item, i) => (
+              <div className="row align-items-center mb-3" key={i}>
+                <div className="col-2">
+                  <img
+                    src={
+                      item.imagen?.startsWith("http")
+                        ? item.imagen
+                        : `/${item.imagen}`
+                    }
+                    alt={item.nombre}
+                    style={{ width: "60px" }}
+                    className="img-fluid rounded"
+                  />
+                </div>
+                <div className="col-4">
+                  <h5 className="mb-1">{item.nombre}</h5>
+                  {item.descripcion && (
+                    <p className="mb-0 text-muted small">
+                      {item.descripcion}
+                    </p>
+                  )}
+                </div>
+                <div className="col-3 d-flex align-items-center">
+                  <button
+                    className="btn btn-outline-secondary btn-sm me-2"
+                    onClick={() =>
+                      updateQuantity(i, (item.cantidad || 1) - 1)
+                    }
+                  >
+                    -
+                  </button>
+                  <span>{item.cantidad || 1}</span>
+                  <button
+                    className="btn btn-outline-secondary btn-sm ms-2"
+                    onClick={() =>
+                      updateQuantity(i, (item.cantidad || 1) + 1)
+                    }
+                  >
+                    +
+                  </button>
+                </div>
+                <div className="col-2 text-end">
+                  <span className="fw-bold">
+                    ${ (item.precio || 0) * (item.cantidad || 1) }
+                  </span>
+                </div>
+                <div className="col-1 text-end">
+                  <button
+                    className="btn btn-sm btn-danger"
+                    onClick={() => removeItem(i)}
+                  >
+                    ✕
+                  </button>
+                </div>
               </div>
-              <div className="col-4">{item.nombre}</div>
-              <div className="col-2">${item.precio}</div>
-              <div className="col-2">
-                <input
-                  type="number"
-                  min="1"
-                  value={item.cantidad}
-                  className="form-control form-control-sm"
-                  onChange={(e) =>
-                    updateQuantity(i, parseInt(e.target.value) || 1)
-                  }
-                />
-              </div>
-              <div className="col-2">
+            ))}
+
+            <div className="mt-4 d-flex justify-content-between align-items-center">
+              <h4>Total: ${total}</h4>
+              <div>
                 <button
-                  className="btn btn-danger btn-sm"
-                  onClick={() => removeItem(i)}
+                  className="btn btn-success me-2"
+                  onClick={() => router.push("/checkout")}
+                  disabled={cart.length === 0}
                 >
-                  Eliminar
+                  Finalizar compra
+                </button>
+                <button className="btn btn-danger" onClick={clearCart}>
+                  Vaciar carrito
                 </button>
               </div>
             </div>
-          ))
+          </>
         )}
-
-        <div className="mt-4">
-          <h4>Total: ${total}</h4>
-          <button
-            className="btn btn-success me-2"
-            onClick={() => router.push("/checkout")}
-            disabled={cart.length === 0}
-          >
-            Finalizar compra
-          </button>
-          <button
-            className="btn btn-danger"
-            onClick={clearCart}
-            disabled={cart.length === 0}
-          >
-            Vaciar carrito
-          </button>
-        </div>
 
         {message && (
           <div className="alert alert-warning mt-3" role="alert">

@@ -10,25 +10,25 @@ export default function ProductosPage() {
   const [carrito, setCarrito] = useState([]);
   const [error, setError] = useState("");
 
-  // Cargar productos del backend
+  // Cargar productos desde el backend
   useEffect(() => {
     const cargarProductos = async () => {
       try {
-        setError("");
         const data = await obtenerProductos();
-        setProductos(Array.isArray(data) ? data : []);
+        setProductos(data);
       } catch (err) {
         console.error(err);
-        setError("No se pudieron cargar los productos.");
+        setError("No se pudieron cargar los productos. Intenta más tarde.");
       }
     };
 
     cargarProductos();
   }, []);
 
-  // Cargar carrito desde localStorage al montar
+  // Cargar carrito inicial desde localStorage ("cart" como en Ofertas / Navbar)
   useEffect(() => {
     if (typeof window === "undefined") return;
+
     try {
       const almacenado = localStorage.getItem("cart");
       if (almacenado) {
@@ -39,10 +39,14 @@ export default function ProductosPage() {
     }
   }, []);
 
-  // Añadir un producto al carrito
+  // Añadir producto al carrito (mismo estilo que OfertasPage)
   const agregarAlCarrito = (producto) => {
+    if (typeof window === "undefined") return;
+
     setCarrito((carritoActual) => {
       const copia = [...carritoActual];
+
+      // En productos del backend tenemos ID, lo usamos para identificar
       const indice = copia.findIndex((p) => p.id === producto.id);
 
       if (indice >= 0) {
@@ -51,14 +55,17 @@ export default function ProductosPage() {
           cantidad: (copia[indice].cantidad || 1) + 1,
         };
       } else {
-        copia.push({ ...producto, cantidad: 1 });
+        copia.push({
+          ...producto,
+          cantidad: 1, // precio normal (no hay descuento aquí)
+        });
       }
 
-      if (typeof window !== "undefined") {
-        localStorage.setItem("cart", JSON.stringify(copia));
-        // Notificar a Navbar y otras páginas
-        window.dispatchEvent(new Event("cart-updated"));
-      }
+      // Guardar en localStorage con la misma KEY que Ofertas y Cart
+      localStorage.setItem("cart", JSON.stringify(copia));
+
+      // Notificar al Navbar igual que en Ofertas
+      window.dispatchEvent(new Event("storage"));
 
       alert(`${producto.nombre} fue añadido al carrito 🛒`);
       return copia;
@@ -73,22 +80,17 @@ export default function ProductosPage() {
   return (
     <>
       <Navbar />
-
-      <div className="container my-4">
-        <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-2">
-          <h2 className="mb-0">Todos los productos</h2>
-          <span className="badge bg-success">
-            En carrito: {totalItems} producto{totalItems === 1 ? "" : "s"}
+      <div className="container mt-4">
+        <div className="d-flex justify-content-between align-items-center mb-3">
+          <h2>Productos</h2>
+          <span className="badge bg-primary">
+            En carrito: {totalItems} producto(s)
           </span>
         </div>
 
-        {error && (
-          <div className="alert alert-danger" role="alert">
-            {error}
-          </div>
-        )}
+        {error && <div className="alert alert-danger">{error}</div>}
 
-        <div className="row g-4">
+        <div className="row">
           {productos.length === 0 && !error && (
             <p>No hay productos disponibles.</p>
           )}
@@ -96,7 +98,7 @@ export default function ProductosPage() {
           {productos.map((p) => (
             <div
               key={p.id}
-              className="col-12 col-sm-6 col-md-4 col-lg-3 d-flex"
+              className="col-12 col-sm-6 col-md-4 col-lg-3 mb-3"
             >
               <ProductCard producto={p} onAgregar={agregarAlCarrito} />
             </div>
