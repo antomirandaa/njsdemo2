@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
 import ProductCard from "@/components/ProductCard";
-import { obtenerProductos } from "@/services/api";
+import { listarProductos } from "@/services/api";
 
 export default function ProductosPage() {
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState(1);
@@ -41,16 +41,16 @@ export default function ProductosPage() {
       <div className="container my-5">
         <h2 className="text-center mb-4">Nuestros productos</h2>
 
-        {error && (
-          <div className="alert alert-danger text-center">{error}</div>
-        )}
+        {error && <div className="alert alert-danger text-center">{error}</div>}
 
         {/* Selector de categorías */}
         <div className="d-flex justify-content-center mb-4">
           <div className="btn-group" role="group">
             <button
               className={`btn mx-2 ${
-                categoriaSeleccionada === 1 ? "btn-primary" : "btn-outline-primary"
+                categoriaSeleccionada === 1
+                  ? "btn-primary"
+                  : "btn-outline-primary"
               }`}
               onClick={() => setCategoriaSeleccionada(1)}
             >
@@ -58,7 +58,9 @@ export default function ProductosPage() {
             </button>
             <button
               className={`btn mx-2 ${
-                categoriaSeleccionada === 2 ? "btn-primary" : "btn-outline-primary"
+                categoriaSeleccionada === 2
+                  ? "btn-primary"
+                  : "btn-outline-primary"
               }`}
               onClick={() => setCategoriaSeleccionada(2)}
             >
@@ -66,7 +68,9 @@ export default function ProductosPage() {
             </button>
             <button
               className={`btn mx-2 ${
-                categoriaSeleccionada === 3 ? "btn-primary" : "btn-outline-primary"
+                categoriaSeleccionada === 3
+                  ? "btn-primary"
+                  : "btn-outline-primary"
               }`}
               onClick={() => setCategoriaSeleccionada(3)}
             >
