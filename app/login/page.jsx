@@ -1,4 +1,4 @@
-"use client"; // Necesario porque usamos estado y eventos de React
+"use client";
 import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import Head from "next/head";
@@ -14,38 +14,25 @@ export default function LoginPage() {
     e.preventDefault();
     const form = e.target;
 
-    if (!form.checkValidity()) {
-      form.classList.add("was-validated");
-      return;
-    }
+    const datos = {
+      correo: form.correo.value,
+      password: form.password.value,
+    };
 
-    const correo = form.correo.value.trim();
-    const password = form.password.value;
+    setError("");
+    setSuccess("");
 
     try {
-      setError("");
-      setSuccess("");
-
-      // 👉 Llamamos a la API de login
-      const usuario = await loginUsuario(correo, password);
-
-      // Guardamos usuario actual para usarlo luego en el checkout
+      const usuario = await loginUsuario(datos);
+      setSuccess(`Bienvenido, ${usuario.nombre}`);
+      // si quieres guardar info en localStorage:
       if (typeof window !== "undefined") {
-        localStorage.setItem("currentUser", JSON.stringify(usuario));
+        localStorage.setItem("usuario", JSON.stringify(usuario));
       }
-
-      setSuccess("Inicio de sesión exitoso.");
-      form.classList.remove("was-validated");
-      form.reset();
-
-      // Redirigimos a productos
-      setTimeout(() => {
-        router.push("/productos");
-      }, 800);
+      // redirigir al home o a productos
+      router.push("/productos");
     } catch (err) {
-      console.error(err);
-      setError(err.message || "Usuario o contraseña incorrectos.");
-      setSuccess("");
+      setError(err.message || "Error al iniciar sesión.");
     }
   };
 
@@ -55,49 +42,30 @@ export default function LoginPage() {
         <title>Login - CompraCositas</title>
       </Head>
       <Navbar />
-
-      <div className="container my-5">
-        <h2 className="text-center mb-4">Iniciar sesión</h2>
-
-        <form
-          className="needs-validation"
-          noValidate
-          onSubmit={handleSubmit}
-        >
+      <div className="container mt-4">
+        <h1>Iniciar Sesión</h1>
+        <form onSubmit={handleSubmit} noValidate>
           <div className="mb-3">
-            <label htmlFor="correo" className="form-label">
-              Correo electrónico
-            </label>
+            <label className="form-label">Correo</label>
             <input
               type="email"
-              className="form-control"
-              id="correo"
               name="correo"
+              className="form-control"
               required
             />
-            <div className="invalid-feedback">
-              Por favor ingresa un correo válido.
-            </div>
           </div>
 
           <div className="mb-3">
-            <label htmlFor="password" className="form-label">
-              Contraseña
-            </label>
+            <label className="form-label">Contraseña</label>
             <input
               type="password"
-              className="form-control"
-              id="password"
               name="password"
+              className="form-control"
               required
-              minLength={4}
             />
-            <div className="invalid-feedback">
-              La contraseña es obligatoria (mínimo 4 caracteres).
-            </div>
           </div>
 
-          <button type="submit" className="btn btn-primary w-100">
+          <button type="submit" className="btn btn-primary">
             Ingresar
           </button>
         </form>
