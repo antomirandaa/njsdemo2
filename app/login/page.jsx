@@ -57,18 +57,12 @@ export default function LoginPage() {
       <div className="container mt-5">
         <h2 className="text-center mb-4">Iniciar sesión</h2>
 
-        {error && (
-          <div className="alert alert-danger text-center">{error}</div>
-        )}
+        {error && <div className="alert alert-danger text-center">{error}</div>}
         {success && (
           <div className="alert alert-success text-center">{success}</div>
         )}
 
-        <form
-          className="needs-validation"
-          noValidate
-          onSubmit={handleSubmit}
-        >
+        <form className="needs-validation" noValidate onSubmit={handleSubmit}>
           <div className="mb-3">
             <label className="form-label">Correo electrónico</label>
             <input
@@ -90,9 +84,7 @@ export default function LoginPage() {
               className="form-control"
               required
             />
-            <div className="invalid-feedback">
-              Ingresa tu contraseña.
-            </div>
+            <div className="invalid-feedback">Ingresa tu contraseña.</div>
           </div>
 
           <div className="text-center">
