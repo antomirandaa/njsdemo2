@@ -1,72 +1,82 @@
-// app/productos/page.js
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
 import ProductCard from "@/components/ProductCard";
-import { productos } from "@/data/productos";
+import { obtenerProductos } from "@/services/api";
 
 export default function ProductosPage() {
-  // Estado para la categoría seleccionada (por defecto 1)
-  const [categoriaSeleccionada, setCategoriaSeleccionada] = useState(1);
+  const [categoriaSeleccionada, setCategoriaSeleccionada] = useState(null);
+  const [productos, setProductos] = useState([]);
+  const [error, setError] = useState("");
 
-  // Filtrar productos según la categoría
-  const productosFiltrados = productos.filter(
-    (p) => p.categoria === categoriaSeleccionada
-  );
+  useEffect(() => {
+    const cargar = async () => {
+      try {
+        setError("");
+        const data = await obtenerProductos();
+        setProductos(data);
+        if (data.length > 0 && categoriaSeleccionada === null) {
+          setCategoriaSeleccionada(data[0].categoriaId || 1);
+        }
+      } catch (err) {
+        console.error(err);
+        setError("No se pudieron cargar los productos desde el servidor.");
+      }
+    };
+    cargar();
+  }, [categoriaSeleccionada]);
+
+  const categorias = [
+    ...new Set(productos.map((p) => p.categoriaId || p.categoria || 1)),
+  ];
+
+  const productosFiltrados =
+    categoriaSeleccionada === null
+      ? productos
+      : productos.filter(
+          (p) =>
+            (p.categoriaId || p.categoria || 1) === categoriaSeleccionada
+        );
 
   return (
     <>
       <Navbar />
 
       <div className="container my-5">
-        <h2 className="text-center mb-4">Nuestros Productos</h2>
+        <h2 className="text-center mb-4">Nuestros productos</h2>
 
-        {/* 🔸 Selector de categorías */}
+        {error && (
+          <div className="alert alert-danger text-center">{error}</div>
+        )}
+
+        {/* Selector de categorías */}
         <div className="d-flex justify-content-center mb-4">
-          <div className="btn-group" role="group">
+          {categorias.map((cat) => (
             <button
-              className={`btn ${
-                categoriaSeleccionada === 1
+              key={cat}
+              className={`btn mx-2 ${
+                categoriaSeleccionada === cat
                   ? "btn-primary"
                   : "btn-outline-primary"
               }`}
-              onClick={() => setCategoriaSeleccionada(1)}
+              onClick={() => setCategoriaSeleccionada(cat)}
             >
-              Animales
+              Categoría {cat}
             </button>
-            <button
-              className={`btn ${
-                categoriaSeleccionada === 2
-                  ? "btn-primary"
-                  : "btn-outline-primary"
-              }`}
-              onClick={() => setCategoriaSeleccionada(2)}
-            >
-              Nintendo
-            </button>
-            <button
-              className={`btn ${
-                categoriaSeleccionada === 3
-                  ? "btn-primary"
-                  : "btn-outline-primary"
-              }`}
-              onClick={() => setCategoriaSeleccionada(3)}
-            >
-              BTR
-            </button>
-          </div>
+          ))}
         </div>
 
-        {/* 🔹 Productos filtrados */}
-        <div className="row g-4">
-          {productosFiltrados.length > 0 ? (
-            productosFiltrados.map((prod, i) => (
-              <div key={i} className="col-6 col-md-3">
-                <ProductCard producto={prod} />
-              </div>
-            ))
-          ) : (
-            <p className="text-center">No hay productos en esta categoría.</p>
+        {/* Grid productos */}
+        <div className="row">
+          {productosFiltrados.map((producto) => (
+            <div className="col-md-4 mb-4" key={producto.id}>
+              <ProductCard producto={producto} />
+            </div>
+          ))}
+          {productosFiltrados.length === 0 && (
+            <p className="text-center">
+              No hay productos disponibles para esta categoría.
+            </p>
           )}
         </div>
       </div>

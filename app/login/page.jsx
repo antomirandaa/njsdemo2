@@ -1,13 +1,16 @@
-"use client"; // Necesario porque usamos estado y eventos de React
+"use client";
 import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import Head from "next/head";
+import { loginUsuario } from "@/services/api";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
-  const [success, setSuccess] = useState(false);
-  const [error, setError] = useState(false);
+  const router = useRouter();
+  const [success, setSuccess] = useState("");
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const form = e.target;
 
@@ -19,84 +22,85 @@ export default function LoginPage() {
     const correo = form.correo.value.trim();
     const password = form.password.value;
 
-    const users = JSON.parse(localStorage.getItem("usuarios") || "[]");
-    const user = users.find(
-      (u) => u.correo === correo && u.password === password
-    );
+    try {
+      setError("");
+      setSuccess("");
 
-    if (user) {
-      setSuccess(true);
-      setError(false);
+      // 👉 Llamamos al backend
+      const usuario = await loginUsuario(correo, password);
+
+      // Guardamos usuario actual
+      localStorage.setItem("currentUser", JSON.stringify(usuario));
+
+      setSuccess("¡Inicio de sesión exitoso!");
+      form.reset();
+      form.classList.remove("was-validated");
+
       setTimeout(() => {
-        // Redirigir al inicio después del login exitoso
-        window.location.href = "/";
-      }, 1200);
-    } else {
-      setSuccess(false);
-      setError(true);
+        router.push("/productos");
+      }, 1500);
+    } catch (err) {
+      console.error(err);
+      setError("Usuario o contraseña incorrectos.");
+      setSuccess("");
     }
   };
 
   return (
     <>
       <Head>
-        <title>Login | Peluches Express</title>
+        <title>Login - Comprar Cositas</title>
       </Head>
 
       <Navbar />
 
       <div className="container mt-5">
-        <form className="needs-validation" noValidate onSubmit={handleSubmit}>
-          <div className="card">
-            <div className="card-header fw-bold">Iniciar sesión</div>
-            <div className="card-body">
-              <div className="mb-3">
-                <label htmlFor="correo" className="form-label">
-                  Correo
-                </label>
-                <input
-                  type="email"
-                  className="form-control"
-                  id="correo"
-                  name="correo"
-                  required
-                />
-                <div className="invalid-feedback">Ingrese su correo.</div>
-              </div>
+        <h2 className="text-center mb-4">Iniciar sesión</h2>
 
-              <div className="mb-3">
-                <label htmlFor="password" className="form-label">
-                  Contraseña
-                </label>
-                <input
-                  type="password"
-                  className="form-control"
-                  id="password"
-                  name="password"
-                  required
-                />
-                <div className="invalid-feedback">Ingrese su contraseña.</div>
-              </div>
+        {error && (
+          <div className="alert alert-danger text-center">{error}</div>
+        )}
+        {success && (
+          <div className="alert alert-success text-center">{success}</div>
+        )}
 
-              <div className="d-grid">
-                <button className="btn btn-primary" type="submit">
-                  Ingresar
-                </button>
-              </div>
+        <form
+          className="needs-validation"
+          noValidate
+          onSubmit={handleSubmit}
+        >
+          <div className="mb-3">
+            <label className="form-label">Correo electrónico</label>
+            <input
+              type="email"
+              name="correo"
+              className="form-control"
+              required
+            />
+            <div className="invalid-feedback">
+              Ingresa tu correo electrónico.
             </div>
           </div>
-        </form>
 
-        {success && (
-          <div className="alert alert-success mt-3" role="alert">
-            ¡Inicio de sesión exitoso!
+          <div className="mb-3">
+            <label className="form-label">Contraseña</label>
+            <input
+              type="password"
+              name="password"
+              className="form-control"
+              required
+            />
+            <div className="invalid-feedback">
+              Ingresa tu contraseña.
+            </div>
           </div>
-        )}
-        {error && (
-          <div className="alert alert-danger mt-3" role="alert">
-            Usuario o contraseña incorrectos.
+
+          <div className="text-center">
+            <button type="submit" className="btn btn-primary px-5">
+              Entrar
+            </button>
           </div>
-        )}
+        </form>
       </div>
     </>
   );

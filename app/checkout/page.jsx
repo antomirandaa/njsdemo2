@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
+import { crearPago } from "@/services/api";
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -17,23 +18,24 @@ export default function CheckoutPage() {
   });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [usuario, setUsuario] = useState(null);
 
-  const comunas = ["Linares", "Longaví", "Concepción"];
-  const regiones = [
-    "Región Metropolitana de Santiago",
-    "Región de la Araucanía",
-    "Región de Ñuble",
-  ];
-
-  // 🛒 Cargar carrito desde localStorage
   useEffect(() => {
     const storedCart = JSON.parse(localStorage.getItem("cart") || "[]");
-    if (storedCart.length === 0) {
-      router.push("/productos");
-    } else {
-      setCart(storedCart);
+    setCart(storedCart);
+
+    const usr = localStorage.getItem("currentUser");
+    if (usr) {
+      const u = JSON.parse(usr);
+      setUsuario(u);
+      setForm((prev) => ({
+        ...prev,
+        nombre: u.nombre || "",
+        correo: u.correo || "",
+      }));
     }
-  }, [router]);
+  }, []);
 
   const total = cart.reduce(
     (sum, item) => sum + item.precio * item.cantidad,
@@ -44,206 +46,214 @@ export default function CheckoutPage() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  // ✅ Verificación de usuario y campos obligatorios
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
+    setError("");
+    setSuccess("");
+
+    if (!usuario) {
+      setError("Debes iniciar sesión antes de realizar la compra.");
+      return;
+    }
 
     const { nombre, correo, calle, comuna, region } = form;
 
     if (!nombre || !correo || !calle || !comuna || !region) {
       setError("Por favor completa todos los campos obligatorios.");
-      setSuccess("");
       return;
     }
 
     const correoValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo);
     if (!correoValido) {
       setError("Por favor ingresa un correo electrónico válido.");
-      setSuccess("");
       return;
     }
 
-    const usuarios = JSON.parse(localStorage.getItem("usuarios") || "[]");
-    const usuarioEncontrado = usuarios.find(
-      (u) =>
-        u.nombre.toLowerCase() === nombre.toLowerCase() &&
-        u.correo.toLowerCase() === correo.toLowerCase()
-    );
-
-    if (!usuarioEncontrado) {
-      setError("Usuario no registrado o datos incorrectos.");
-      setSuccess("");
+    if (cart.length === 0) {
+      setError("Tu carrito está vacío.");
       return;
     }
 
-    // ✅ Compra válida
-    setError("");
-    setSuccess("¡Compra realizada con éxito!");
-    localStorage.removeItem("cart");
+    // Construimos items para el backend
+    const items = cart.map((item, index) => ({
+      productoId: item.id || index + 1,
+      cantidad: item.cantidad,
+      precioUnitario: item.precio,
+    }));
 
-    setTimeout(() => {
-      router.push("/");
-    }, 3000);
+    try {
+      setLoading(true);
+
+      const boleta = await crearPago(usuario.id || 1, "TARJETA", items);
+
+      localStorage.removeItem("cart");
+      setCart([]);
+      setSuccess(
+        `✅ Compra realizada con éxito. N° de boleta: ${boleta.id}`
+      );
+      setError("");
+
+      setTimeout(() => {
+        router.push("/");
+      }, 2500);
+    } catch (err) {
+      console.error(err);
+      setError(
+        "Ocurrió un error al registrar el pago en el servidor. Inténtalo nuevamente."
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <>
       <Navbar />
-      <div className="container my-5">
-        <h2 className="text-center mb-4">🧾 Confirmar Compra</h2>
 
-        {/* 🛍️ Resumen del carrito */}
-        <div className="card shadow-sm mb-4">
-          <div className="card-body">
-            <h4 className="mb-3">Productos en tu carrito</h4>
-            {cart.length === 0 ? (
-              <p>No hay productos en el carrito.</p>
-            ) : (
-              <>
-                {cart.map((item, i) => (
-                  <div
-                    key={i}
-                    className="d-flex justify-content-between border-bottom py-2"
-                  >
-                    <span>
-                      {item.nombre} x{item.cantidad}
-                    </span>
-                    <span>
-                      ${(item.precio * item.cantidad).toLocaleString()}
-                    </span>
-                  </div>
-                ))}
-                <h5 className="mt-3 text-end">
-                  Total: ${total.toLocaleString()}
-                </h5>
-              </>
-            )}
+      <div className="container mt-4">
+        <h2 className="mb-4 text-center">Checkout</h2>
+
+        {error && (
+          <div className="alert alert-danger text-center">{error}</div>
+        )}
+        {success && (
+          <div className="alert alert-success text-center">{success}</div>
+        )}
+
+        <div className="row">
+          {/* Resumen del carrito */}
+          <div className="col-md-5 mb-4">
+            <div className="card shadow">
+              <div className="card-header fw-bold">Resumen de compra</div>
+              <div className="card-body">
+                {cart.length === 0 ? (
+                  <p>Tu carrito está vacío.</p>
+                ) : (
+                  <>
+                    {cart.map((item, i) => (
+                      <div
+                        key={i}
+                        className="d-flex justify-content-between border-bottom py-2"
+                      >
+                        <span>
+                          {item.nombre} x{item.cantidad}
+                        </span>
+                        <span>
+                          ${(item.precio * item.cantidad).toLocaleString()}
+                        </span>
+                      </div>
+                    ))}
+                    <h5 className="mt-3 text-end">
+                      Total: ${total.toLocaleString()}
+                    </h5>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Formulario */}
+          <div className="col-md-7">
+            <form className="card p-4 shadow" onSubmit={handleSubmit}>
+              <h4 className="mb-3 text-center">Datos de envío</h4>
+
+              <div className="row g-3">
+                <div className="col-md-6">
+                  <label className="form-label">Nombre</label>
+                  <input
+                    type="text"
+                    name="nombre"
+                    className="form-control"
+                    value={form.nombre}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+
+                <div className="col-md-6">
+                  <label className="form-label">Correo electrónico</label>
+                  <input
+                    type="email"
+                    name="correo"
+                    className="form-control"
+                    value={form.correo}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+
+                <div className="col-md-6">
+                  <label className="form-label">Calle</label>
+                  <input
+                    type="text"
+                    name="calle"
+                    className="form-control"
+                    value={form.calle}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+
+                <div className="col-md-6">
+                  <label className="form-label">Región</label>
+                  <input
+                    type="text"
+                    name="region"
+                    className="form-control"
+                    value={form.region}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+
+                <div className="col-md-6">
+                  <label className="form-label">Comuna</label>
+                  <input
+                    type="text"
+                    name="comuna"
+                    className="form-control"
+                    value={form.comuna}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+
+                <div className="col-md-6">
+                  <label className="form-label">Depto / Casa</label>
+                  <input
+                    type="text"
+                    name="departamento"
+                    className="form-control"
+                    value={form.departamento}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                <div className="col-12">
+                  <label className="form-label">Indicaciones extra</label>
+                  <textarea
+                    name="indicaciones"
+                    className="form-control"
+                    rows={3}
+                    value={form.indicaciones}
+                    onChange={handleChange}
+                  />
+                </div>
+              </div>
+
+              <div className="mt-4 text-center">
+                <button
+                  type="submit"
+                  className="btn btn-success px-5"
+                  disabled={loading || cart.length === 0}
+                >
+                  {loading ? "Procesando..." : "Confirmar compra"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
-
-        {/* 🧍Formulario */}
-        <form className="card p-4 shadow" onSubmit={handleSubmit}>
-          <h4 className="mb-3 text-center">Datos del comprador</h4>
-
-          <div className="row g-3">
-            <div className="col-md-6">
-              <label className="form-label">
-                Nombre <span style={{ color: "#dc3545" }}>*</span>
-              </label>
-              <input
-                type="text"
-                name="nombre"
-                className="form-control"
-                value={form.nombre}
-                onChange={handleChange}
-                required
-              />
-            </div>
-
-            <div className="col-md-6">
-              <label className="form-label">
-                Correo electrónico <span style={{ color: "#dc3545" }}>*</span>
-              </label>
-              <input
-                type="email"
-                name="correo"
-                className="form-control"
-                value={form.correo}
-                onChange={handleChange}
-                required
-              />
-            </div>
-
-            <div className="col-md-12">
-              <label className="form-label">
-                Calle <span style={{ color: "#dc3545" }}>*</span>
-              </label>
-              <input
-                type="text"
-                name="calle"
-                className="form-control"
-                value={form.calle}
-                onChange={handleChange}
-                required
-              />
-            </div>
-
-            <div className="col-md-6">
-              <label className="form-label">
-                Región <span style={{ color: "#dc3545" }}>*</span>
-              </label>
-              <select
-                name="region"
-                className="form-select"
-                value={form.region}
-                onChange={handleChange}
-                required
-              >
-                <option value="">-- Seleccione región --</option>
-                {regiones.map((r, i) => (
-                  <option key={i}>{r}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="col-md-6">
-              <label className="form-label">
-                Comuna <span style={{ color: "#dc3545" }}>*</span>
-              </label>
-              <select
-                name="comuna"
-                className="form-select"
-                value={form.comuna}
-                onChange={handleChange}
-                required
-              >
-                <option value="">-- Seleccione comuna --</option>
-                {comunas.map((c, i) => (
-                  <option key={i}>{c}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="col-md-6">
-              <label className="form-label">
-                N° de departamento (opcional)
-              </label>
-              <input
-                type="text"
-                name="departamento"
-                className="form-control"
-                value={form.departamento}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div className="col-md-6">
-              <label className="form-label">Indicaciones (opcional)</label>
-              <input
-                type="text"
-                name="indicaciones"
-                className="form-control"
-                value={form.indicaciones}
-                onChange={handleChange}
-              />
-            </div>
-          </div>
-
-          <div className="mt-4 text-center">
-            <button className="btn btn-success px-4" type="submit">
-              Confirmar compra
-            </button>
-          </div>
-
-          {error && (
-            <div className="alert alert-danger mt-3 text-center">{error}</div>
-          )}
-          {success && (
-            <div className="alert alert-success mt-3 text-center">
-              {success}
-            </div>
-          )}
-        </form>
       </div>
     </>
   );

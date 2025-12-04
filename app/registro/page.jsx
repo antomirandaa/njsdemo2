@@ -1,17 +1,17 @@
-"use client"; // Necesario porque usamos estado y eventos de React
+"use client";
 import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import Head from "next/head";
+import { registrarUsuario } from "@/services/api";
 
 export default function RegistroPage() {
-  const [success, setSuccess] = useState(false);
-  const [error, setError] = useState(false);
+  const [success, setSuccess] = useState("");
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const form = e.target;
 
-    // Validación HTML5
     if (!form.checkValidity()) {
       form.classList.add("was-validated");
       return;
@@ -26,192 +26,180 @@ export default function RegistroPage() {
     const region = form.region.value;
     const comuna = form.comuna.value;
 
-    // Validaciones manuales
-    if (correo !== correo2 || password !== password2) {
-      setError(true);
-      setSuccess(false);
+    // Validaciones manuales básicas
+    if (correo !== correo2) {
+      setError("Los correos no coinciden.");
+      setSuccess("");
+      return;
+    }
+    if (password !== password2) {
+      setError("Las contraseñas no coinciden.");
+      setSuccess("");
       return;
     }
 
-    // Guardar usuario en localStorage
-    const users = JSON.parse(localStorage.getItem("usuarios") || "[]");
-    if (users.some((u) => u.correo === correo)) {
-      setError(true);
-      setSuccess(false);
-      return;
+    try {
+      setError("");
+      setSuccess("");
+
+      // 👉 Llamamos al backend
+      const usuarioCreado = await registrarUsuario({
+        nombre,
+        correo,
+        password,
+        telefono,
+        region,
+        comuna,
+      });
+
+      // Guardamos el usuario logueado en localStorage
+      localStorage.setItem("currentUser", JSON.stringify(usuarioCreado));
+
+      form.reset();
+      form.classList.remove("was-validated");
+      setSuccess("Usuario registrado correctamente. ¡Ya puedes comprar!");
+    } catch (err) {
+      console.error(err);
+      setError(
+        "Ocurrió un error al registrar el usuario en el servidor. Revisa los datos o inténtalo más tarde."
+      );
+      setSuccess("");
     }
-
-    users.push({ nombre, correo, password, telefono, region, comuna });
-    localStorage.setItem("usuarios", JSON.stringify(users));
-
-    form.reset();
-    form.classList.remove("was-validated");
-    setSuccess(true);
-    setError(false);
   };
 
   return (
     <>
       <Head>
-        <title>Registro | Peluches Express</title>
+        <title>Registro - Comprar Cositas</title>
       </Head>
 
       <Navbar />
 
       <div className="container mt-5">
-        <form className="needs-validation" noValidate onSubmit={handleSubmit}>
-          <div className="card">
-            <div className="card-header fw-bold">Registro de usuario</div>
-            <div className="card-body">
-              <div className="mb-3">
-                <label htmlFor="nombre" className="form-label">
-                  Nombre completo
-                </label>
-                <input
-                  type="text"
-                  className="form-control"
-                  id="nombre"
-                  name="nombre"
-                  required
-                />
-                <div className="invalid-feedback">
-                  Ingrese su nombre completo.
-                </div>
-              </div>
+        <h2 className="text-center mb-4">Registro de usuario</h2>
 
-              <div className="mb-3">
-                <label htmlFor="correo" className="form-label">
-                  Correo
-                </label>
-                <input
-                  type="email"
-                  className="form-control"
-                  id="correo"
-                  name="correo"
-                  required
-                />
-                <div className="invalid-feedback">
-                  Ingrese un correo válido.
-                </div>
-              </div>
+        {error && (
+          <div className="alert alert-danger text-center">{error}</div>
+        )}
+        {success && (
+          <div className="alert alert-success text-center">{success}</div>
+        )}
 
-              <div className="mb-3">
-                <label htmlFor="correo2" className="form-label">
-                  Confirmar correo
-                </label>
-                <input
-                  type="email"
-                  className="form-control"
-                  id="correo2"
-                  name="correo2"
-                  required
-                />
-                <div className="invalid-feedback">
-                  Los correos no coinciden.
-                </div>
-              </div>
-
-              <div className="mb-3">
-                <label htmlFor="password" className="form-label">
-                  Contraseña
-                </label>
-                <input
-                  type="password"
-                  className="form-control"
-                  id="password"
-                  name="password"
-                  required
-                  minLength={6}
-                />
-                <div className="invalid-feedback">
-                  La contraseña debe tener al menos 6 caracteres.
-                </div>
-              </div>
-
-              <div className="mb-3">
-                <label htmlFor="password2" className="form-label">
-                  Confirmar contraseña
-                </label>
-                <input
-                  type="password"
-                  className="form-control"
-                  id="password2"
-                  name="password2"
-                  required
-                />
-                <div className="invalid-feedback">
-                  Las contraseñas no coinciden.
-                </div>
-              </div>
-
-              <div className="mb-3">
-                <label htmlFor="telefono" className="form-label">
-                  Teléfono (opcional)
-                </label>
-                <input
-                  type="text"
-                  className="form-control"
-                  id="telefono"
-                  name="telefono"
-                />
-              </div>
-
-              <div className="row mb-3">
-                <div className="col">
-                  <label htmlFor="region" className="form-label">
-                    Región
-                  </label>
-                  <select
-                    className="form-select"
-                    id="region"
-                    name="region"
-                    required
-                  >
-                    <option value="">-- Seleccione la región --</option>
-                    <option>Región Metropolitana de Santiago</option>
-                    <option>Región de la Araucanía</option>
-                    <option>Región de Ñuble</option>
-                  </select>
-                  <div className="invalid-feedback">Seleccione una región.</div>
-                </div>
-                <div className="col">
-                  <label htmlFor="comuna" className="form-label">
-                    Comuna
-                  </label>
-                  <select
-                    className="form-select"
-                    id="comuna"
-                    name="comuna"
-                    required
-                  >
-                    <option value="">-- Seleccione la comuna --</option>
-                    <option>Linares</option>
-                    <option>Longaví</option>
-                    <option>Concepción</option>
-                  </select>
-                  <div className="invalid-feedback">Seleccione una comuna.</div>
-                </div>
-              </div>
-
-              <div className="d-grid">
-                <button className="btn btn-primary" type="submit">
-                  Registrar
-                </button>
+        <form
+          className="needs-validation"
+          noValidate
+          onSubmit={handleSubmit}
+        >
+          <div className="row g-3">
+            <div className="col-md-6">
+              <label className="form-label">Nombre completo</label>
+              <input
+                type="text"
+                name="nombre"
+                className="form-control"
+                required
+              />
+              <div className="invalid-feedback">
+                Ingresa tu nombre completo.
               </div>
             </div>
+
+            <div className="col-md-6">
+              <label className="form-label">Teléfono</label>
+              <input
+                type="tel"
+                name="telefono"
+                className="form-control"
+                required
+              />
+              <div className="invalid-feedback">
+                Ingresa un número telefónico.
+              </div>
+            </div>
+
+            <div className="col-md-6">
+              <label className="form-label">Correo electrónico</label>
+              <input
+                type="email"
+                name="correo"
+                className="form-control"
+                required
+              />
+              <div className="invalid-feedback">
+                Ingresa un correo válido.
+              </div>
+            </div>
+
+            <div className="col-md-6">
+              <label className="form-label">Repetir correo electrónico</label>
+              <input
+                type="email"
+                name="correo2"
+                className="form-control"
+                required
+              />
+              <div className="invalid-feedback">
+                Repite tu correo.
+              </div>
+            </div>
+
+            <div className="col-md-6">
+              <label className="form-label">Contraseña</label>
+              <input
+                type="password"
+                name="password"
+                className="form-control"
+                required
+                minLength={4}
+              />
+              <div className="invalid-feedback">
+                Ingresa una contraseña (mínimo 4 caracteres).
+              </div>
+            </div>
+
+            <div className="col-md-6">
+              <label className="form-label">Repetir contraseña</label>
+              <input
+                type="password"
+                name="password2"
+                className="form-control"
+                required
+                minLength={4}
+              />
+              <div className="invalid-feedback">
+                Repite tu contraseña.
+              </div>
+            </div>
+
+            <div className="col-md-6">
+              <label className="form-label">Región</label>
+              <input
+                type="text"
+                name="region"
+                className="form-control"
+                required
+              />
+              <div className="invalid-feedback">Ingresa tu región.</div>
+            </div>
+
+            <div className="col-md-6">
+              <label className="form-label">Comuna</label>
+              <input
+                type="text"
+                name="comuna"
+                className="form-control"
+                required
+              />
+              <div className="invalid-feedback">Ingresa tu comuna.</div>
+            </div>
+          </div>
+
+          <div className="mt-4 text-center">
+            <button type="submit" className="btn btn-primary px-5">
+              Registrarme
+            </button>
           </div>
         </form>
-
-        {success && (
-          <div className="alert alert-success mt-3" role="alert">
-            ¡Usuario registrado correctamente!
-          </div>
-        )}
-        {error && (
-          <div className="alert alert-danger mt-3" role="alert">
-            El usuario ya existe o los datos no son válidos.
-          </div>
-        )}
       </div>
     </>
   );
