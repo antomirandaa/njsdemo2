@@ -2,50 +2,21 @@
 
 import Image from "next/image";
 
-// Función para obtener la ruta correcta de la imagen
 function getImageSrc(producto) {
   if (producto.imagen) {
-    // Si viene como URL absoluta (http/https)
     if (producto.imagen.startsWith("http")) {
       return producto.imagen;
     }
-
-    // Si viene como ruta relativa desde BD (images/...)
     return producto.imagen.startsWith("/")
       ? producto.imagen
       : `/${producto.imagen}`;
   }
 
-  // Imagen por defecto si no existe la imagen en BD
   return "/images/default.png";
 }
 
-export default function ProductCard({ producto }) {
+export default function ProductCard({ producto, onAgregar }) {
   const src = getImageSrc(producto);
-
-  // Función para agregar productos al carrito usando localStorage
-  const agregarAlCarrito = () => {
-    let carrito = [];
-
-    if (typeof window !== "undefined") {
-      const almacenado = localStorage.getItem("carrito");
-      carrito = almacenado ? JSON.parse(almacenado) : [];
-    }
-
-    const existente = carrito.find((p) => p.id === producto.id);
-
-    if (existente) {
-      existente.cantidad += 1;
-    } else {
-      carrito.push({ ...producto, cantidad: 1 });
-    }
-
-    if (typeof window !== "undefined") {
-      localStorage.setItem("carrito", JSON.stringify(carrito));
-    }
-
-    alert(`${producto.nombre} fue agregado al carrito 🛒`);
-  };
 
   return (
     <div className="card h-100 shadow-sm">
@@ -72,10 +43,10 @@ export default function ProductCard({ producto }) {
 
         <p className="card-text fw-bold fs-5">${producto.precio}</p>
 
-        {/* BOTÓN DE CARRITO — RESPONSIVO, FULL WIDTH */}
+        {/* BOTÓN AÑADIR AL CARRITO – dentro del grid, responsivo */}
         <button
           className="btn btn-success mt-auto w-100"
-          onClick={agregarAlCarrito}
+          onClick={() => onAgregar && onAgregar(producto)}
         >
           Añadir al carrito 🛒
         </button>
