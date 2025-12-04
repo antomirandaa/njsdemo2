@@ -1,4 +1,4 @@
-"use client";
+"use client"; // Necesario porque usamos estado y eventos de React
 import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import Head from "next/head";
@@ -26,22 +26,25 @@ export default function LoginPage() {
       setError("");
       setSuccess("");
 
-      // 👉 Llamamos al backend
+      // 👉 Llamamos a la API de login
       const usuario = await loginUsuario(correo, password);
 
-      // Guardamos usuario actual
-      localStorage.setItem("currentUser", JSON.stringify(usuario));
+      // Guardamos usuario actual para usarlo luego en el checkout
+      if (typeof window !== "undefined") {
+        localStorage.setItem("currentUser", JSON.stringify(usuario));
+      }
 
-      setSuccess("¡Inicio de sesión exitoso!");
-      form.reset();
+      setSuccess("Inicio de sesión exitoso.");
       form.classList.remove("was-validated");
+      form.reset();
 
+      // Redirigimos a productos
       setTimeout(() => {
         router.push("/productos");
-      }, 1500);
+      }, 800);
     } catch (err) {
       console.error(err);
-      setError("Usuario o contraseña incorrectos.");
+      setError(err.message || "Usuario o contraseña incorrectos.");
       setSuccess("");
     }
   };
@@ -49,50 +52,66 @@ export default function LoginPage() {
   return (
     <>
       <Head>
-        <title>Login - Comprar Cositas</title>
+        <title>Login - CompraCositas</title>
       </Head>
-
       <Navbar />
 
-      <div className="container mt-5">
+      <div className="container my-5">
         <h2 className="text-center mb-4">Iniciar sesión</h2>
 
-        {error && <div className="alert alert-danger text-center">{error}</div>}
-        {success && (
-          <div className="alert alert-success text-center">{success}</div>
-        )}
-
-        <form className="needs-validation" noValidate onSubmit={handleSubmit}>
+        <form
+          className="needs-validation"
+          noValidate
+          onSubmit={handleSubmit}
+        >
           <div className="mb-3">
-            <label className="form-label">Correo electrónico</label>
+            <label htmlFor="correo" className="form-label">
+              Correo electrónico
+            </label>
             <input
               type="email"
-              name="correo"
               className="form-control"
+              id="correo"
+              name="correo"
               required
             />
             <div className="invalid-feedback">
-              Ingresa tu correo electrónico.
+              Por favor ingresa un correo válido.
             </div>
           </div>
 
           <div className="mb-3">
-            <label className="form-label">Contraseña</label>
+            <label htmlFor="password" className="form-label">
+              Contraseña
+            </label>
             <input
               type="password"
-              name="password"
               className="form-control"
+              id="password"
+              name="password"
               required
+              minLength={4}
             />
-            <div className="invalid-feedback">Ingresa tu contraseña.</div>
+            <div className="invalid-feedback">
+              La contraseña es obligatoria (mínimo 4 caracteres).
+            </div>
           </div>
 
-          <div className="text-center">
-            <button type="submit" className="btn btn-primary px-5">
-              Entrar
-            </button>
-          </div>
+          <button type="submit" className="btn btn-primary w-100">
+            Ingresar
+          </button>
         </form>
+
+        {error && (
+          <div className="alert alert-danger mt-3" role="alert">
+            {error}
+          </div>
+        )}
+        {success && (
+          <div className="alert alert-success mt-3" role="alert">
+            {success}
+          </div>
+        )}
       </div>
     </>
   );

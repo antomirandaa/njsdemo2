@@ -1,4 +1,4 @@
-"use client";
+"use client"; // Necesario porque usamos estado y eventos de React
 import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import Head from "next/head";
@@ -12,6 +12,7 @@ export default function RegistroPage() {
     e.preventDefault();
     const form = e.target;
 
+    // Validación HTML5
     if (!form.checkValidity()) {
       form.classList.add("was-validated");
       return;
@@ -22,16 +23,17 @@ export default function RegistroPage() {
     const correo2 = form.correo2.value.trim();
     const password = form.password.value;
     const password2 = form.password2.value;
+
     const telefono = form.telefono.value.trim();
     const region = form.region.value;
     const comuna = form.comuna.value;
 
-    // Validaciones manuales básicas
     if (correo !== correo2) {
       setError("Los correos no coinciden.");
       setSuccess("");
       return;
     }
+
     if (password !== password2) {
       setError("Las contraseñas no coinciden.");
       setSuccess("");
@@ -42,8 +44,8 @@ export default function RegistroPage() {
       setError("");
       setSuccess("");
 
-      // 👉 Llamamos al backend
-      const usuarioCreado = await registrarUsuario({
+      // 👉 Llamada al backend para registrar
+      const nuevoUsuario = await registrarUsuario({
         nombre,
         correo,
         password,
@@ -52,16 +54,18 @@ export default function RegistroPage() {
         comuna,
       });
 
-      // Guardamos el usuario logueado en localStorage
-      localStorage.setItem("currentUser", JSON.stringify(usuarioCreado));
+      // Guardamos usuario registrado
+      if (typeof window !== "undefined") {
+        localStorage.setItem("currentUser", JSON.stringify(nuevoUsuario));
+      }
 
+      setSuccess("Usuario registrado correctamente.");
       form.reset();
       form.classList.remove("was-validated");
-      setSuccess("Usuario registrado correctamente. ¡Ya puedes comprar!");
     } catch (err) {
       console.error(err);
       setError(
-        "Ocurrió un error al registrar el usuario en el servidor. Revisa los datos o inténtalo más tarde."
+        err.message || "El usuario ya existe o los datos no son válidos."
       );
       setSuccess("");
     }
@@ -70,136 +74,151 @@ export default function RegistroPage() {
   return (
     <>
       <Head>
-        <title>Registro - Comprar Cositas</title>
+        <title>Registro - CompraCositas</title>
       </Head>
-
       <Navbar />
 
-      <div className="container mt-5">
+      <div className="container my-5">
         <h2 className="text-center mb-4">Registro de usuario</h2>
-
-        {error && (
-          <div className="alert alert-danger text-center">{error}</div>
-        )}
-        {success && (
-          <div className="alert alert-success text-center">{success}</div>
-        )}
 
         <form
           className="needs-validation"
           noValidate
           onSubmit={handleSubmit}
         >
-          <div className="row g-3">
-            <div className="col-md-6">
-              <label className="form-label">Nombre completo</label>
-              <input
-                type="text"
-                name="nombre"
-                className="form-control"
-                required
-              />
-              <div className="invalid-feedback">
-                Ingresa tu nombre completo.
-              </div>
-            </div>
-
-            <div className="col-md-6">
-              <label className="form-label">Teléfono</label>
-              <input
-                type="tel"
-                name="telefono"
-                className="form-control"
-                required
-              />
-              <div className="invalid-feedback">
-                Ingresa un número telefónico.
-              </div>
-            </div>
-
-            <div className="col-md-6">
-              <label className="form-label">Correo electrónico</label>
-              <input
-                type="email"
-                name="correo"
-                className="form-control"
-                required
-              />
-              <div className="invalid-feedback">
-                Ingresa un correo válido.
-              </div>
-            </div>
-
-            <div className="col-md-6">
-              <label className="form-label">Repetir correo electrónico</label>
-              <input
-                type="email"
-                name="correo2"
-                className="form-control"
-                required
-              />
-              <div className="invalid-feedback">
-                Repite tu correo.
-              </div>
-            </div>
-
-            <div className="col-md-6">
-              <label className="form-label">Contraseña</label>
-              <input
-                type="password"
-                name="password"
-                className="form-control"
-                required
-                minLength={4}
-              />
-              <div className="invalid-feedback">
-                Ingresa una contraseña (mínimo 4 caracteres).
-              </div>
-            </div>
-
-            <div className="col-md-6">
-              <label className="form-label">Repetir contraseña</label>
-              <input
-                type="password"
-                name="password2"
-                className="form-control"
-                required
-                minLength={4}
-              />
-              <div className="invalid-feedback">
-                Repite tu contraseña.
-              </div>
-            </div>
-
-            <div className="col-md-6">
-              <label className="form-label">Región</label>
-              <input
-                type="text"
-                name="region"
-                className="form-control"
-                required
-              />
-              <div className="invalid-feedback">Ingresa tu región.</div>
-            </div>
-
-            <div className="col-md-6">
-              <label className="form-label">Comuna</label>
-              <input
-                type="text"
-                name="comuna"
-                className="form-control"
-                required
-              />
-              <div className="invalid-feedback">Ingresa tu comuna.</div>
+          <div className="mb-3">
+            <label htmlFor="nombre" className="form-label">
+              Nombre completo
+            </label>
+            <input
+              type="text"
+              className="form-control"
+              id="nombre"
+              name="nombre"
+              required
+            />
+            <div className="invalid-feedback">
+              Por favor ingresa tu nombre.
             </div>
           </div>
 
-          <div className="mt-4 text-center">
-            <button type="submit" className="btn btn-primary px-5">
-              Registrarme
-            </button>
+          <div className="mb-3">
+            <label htmlFor="correo" className="form-label">
+              Correo electrónico
+            </label>
+            <input
+              type="email"
+              className="form-control"
+              id="correo"
+              name="correo"
+              required
+            />
+            <div className="invalid-feedback">
+              Ingresa un correo válido.
+            </div>
           </div>
+
+          <div className="mb-3">
+            <label htmlFor="correo2" className="form-label">
+              Repite tu correo
+            </label>
+            <input
+              type="email"
+              className="form-control"
+              id="correo2"
+              name="correo2"
+              required
+            />
+            <div className="invalid-feedback">
+              Repite el mismo correo.
+            </div>
+          </div>
+
+          <div className="mb-3">
+            <label htmlFor="password" className="form-label">
+              Contraseña
+            </label>
+            <input
+              type="password"
+              className="form-control"
+              id="password"
+              name="password"
+              required
+              minLength={4}
+            />
+            <div className="invalid-feedback">
+              Mínimo 4 caracteres.
+            </div>
+          </div>
+
+          <div className="mb-3">
+            <label htmlFor="password2" className="form-label">
+              Repite tu contraseña
+            </label>
+            <input
+              type="password"
+              className="form-control"
+              id="password2"
+              name="password2"
+              required
+              minLength={4}
+            />
+            <div className="invalid-feedback">
+              Repite la misma contraseña.
+            </div>
+          </div>
+
+          <div className="mb-3">
+            <label htmlFor="telefono" className="form-label">
+              Teléfono
+            </label>
+            <input
+              type="tel"
+              className="form-control"
+              id="telefono"
+              name="telefono"
+            />
+          </div>
+
+          <div className="mb-3">
+            <label htmlFor="region" className="form-label">
+              Región
+            </label>
+            <input
+              type="text"
+              className="form-control"
+              id="region"
+              name="region"
+            />
+          </div>
+
+          <div className="mb-3">
+            <label htmlFor="comuna" className="form-label">
+              Comuna
+            </label>
+            <input
+              type="text"
+              className="form-control"
+              id="comuna"
+              name="comuna"
+            />
+          </div>
+
+          <button type="submit" className="btn btn-success w-100">
+            Registrarme
+          </button>
         </form>
+
+        {success && (
+          <div className="alert alert-success mt-3" role="alert">
+            {success}
+          </div>
+        )}
+        {error && (
+          <div className="alert alert-danger mt-3" role="alert">
+            {error}
+          </div>
+        )}
       </div>
     </>
   );

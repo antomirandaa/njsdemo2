@@ -15,243 +15,242 @@ export default function CheckoutPage() {
     region: "",
     departamento: "",
     indicaciones: "",
+    metodoPago: "TARJETA",
   });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [usuario, setUsuario] = useState(null);
 
+  const comunas = ["Linares", "Longaví", "Concepción"];
+  const regiones = [
+    "Región Metropolitana de Santiago",
+    "Región de la Araucanía",
+    "Región de Ñuble",
+  ];
+
+  // Cargar carrito y usuario desde localStorage
   useEffect(() => {
     const storedCart = JSON.parse(localStorage.getItem("cart") || "[]");
+    if (storedCart.length === 0) {
+      router.push("/productos");
+      return;
+    }
     setCart(storedCart);
 
-    const usr = localStorage.getItem("currentUser");
-    if (usr) {
-      const u = JSON.parse(usr);
-      setUsuario(u);
+    const storedUser = JSON.parse(localStorage.getItem("currentUser") || "null");
+    if (storedUser) {
       setForm((prev) => ({
         ...prev,
-        nombre: u.nombre || "",
-        correo: u.correo || "",
+        nombre: storedUser.nombre || "",
+        correo: storedUser.correo || storedUser.email || "",
       }));
     }
-  }, []);
+  }, [router]);
 
   const total = cart.reduce(
-    (sum, item) => sum + item.precio * item.cantidad,
+    (sum, item) => sum + (item.precio || 0) * (item.cantidad || 1),
     0
   );
 
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     setError("");
     setSuccess("");
-
-    if (!usuario) {
-      setError("Debes iniciar sesión antes de realizar la compra.");
-      return;
-    }
-
-    const { nombre, correo, calle, comuna, region } = form;
-
-    if (!nombre || !correo || !calle || !comuna || !region) {
-      setError("Por favor completa todos los campos obligatorios.");
-      return;
-    }
-
-    const correoValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo);
-    if (!correoValido) {
-      setError("Por favor ingresa un correo electrónico válido.");
-      return;
-    }
 
     if (cart.length === 0) {
       setError("Tu carrito está vacío.");
       return;
     }
 
-    // Construimos items para el backend
-    const items = cart.map((item, index) => ({
-      productoId: item.id || index + 1,
-      cantidad: item.cantidad,
-      precioUnitario: item.precio,
-    }));
+    const storedUser = JSON.parse(localStorage.getItem("currentUser") || "null");
+    if (!storedUser || !storedUser.id) {
+      setError("Debes iniciar sesión antes de pagar.");
+      return;
+    }
 
     try {
-      setLoading(true);
+      const items = cart.map((item, idx) => ({
+        productoId: item.id || idx + 1,
+        cantidad: item.cantidad || 1,
+        precioUnitario: item.precio || 0,
+      }));
 
-      const boleta = await crearPago(usuario.id || 1, "TARJETA", items);
+      await crearPago(storedUser.id, form.metodoPago, items);
 
+      setSuccess("Pago registrado correctamente. ¡Gracias por tu compra!");
       localStorage.removeItem("cart");
       setCart([]);
-      setSuccess(
-        `✅ Compra realizada con éxito. N° de boleta: ${boleta.id}`
-      );
-      setError("");
 
       setTimeout(() => {
-        router.push("/");
-      }, 2500);
+        router.push("/productos");
+      }, 1200);
     } catch (err) {
       console.error(err);
-      setError(
-        "Ocurrió un error al registrar el pago en el servidor. Inténtalo nuevamente."
-      );
-    } finally {
-      setLoading(false);
+      setError(err.message || "Hubo un problema al procesar el pago.");
     }
   };
 
   return (
     <>
       <Navbar />
-
-      <div className="container mt-4">
-        <h2 className="mb-4 text-center">Checkout</h2>
-
-        {error && (
-          <div className="alert alert-danger text-center">{error}</div>
-        )}
-        {success && (
-          <div className="alert alert-success text-center">{success}</div>
-        )}
+      <div className="container my-5">
+        <h2 className="text-center mb-4">Checkout</h2>
 
         <div className="row">
-          {/* Resumen del carrito */}
+          {/* Resumen de compra */}
           <div className="col-md-5 mb-4">
-            <div className="card shadow">
-              <div className="card-header fw-bold">Resumen de compra</div>
-              <div className="card-body">
-                {cart.length === 0 ? (
-                  <p>Tu carrito está vacío.</p>
-                ) : (
-                  <>
-                    {cart.map((item, i) => (
-                      <div
-                        key={i}
-                        className="d-flex justify-content-between border-bottom py-2"
-                      >
-                        <span>
-                          {item.nombre} x{item.cantidad}
-                        </span>
-                        <span>
-                          ${(item.precio * item.cantidad).toLocaleString()}
-                        </span>
-                      </div>
-                    ))}
-                    <h5 className="mt-3 text-end">
-                      Total: ${total.toLocaleString()}
-                    </h5>
-                  </>
-                )}
-              </div>
+            <h4>Resumen de tu compra</h4>
+            <ul className="list-group">
+              {cart.map((item, index) => (
+                <li
+                  key={index}
+                  className="list-group-item d-flex justify-content-between align-items-center"
+                >
+                  <span>
+                    {item.nombre} x {item.cantidad || 1}
+                  </span>
+                  <span>${(item.precio || 0) * (item.cantidad || 1)}</span>
+                </li>
+              ))}
+            </ul>
+            <div className="mt-3 text-end">
+              <strong>Total: ${total}</strong>
             </div>
           </div>
 
-          {/* Formulario */}
+          {/* Formulario de datos y pago */}
           <div className="col-md-7">
-            <form className="card p-4 shadow" onSubmit={handleSubmit}>
-              <h4 className="mb-3 text-center">Datos de envío</h4>
+            <form onSubmit={handleSubmit}>
+              <h4>Datos de contacto</h4>
+              <div className="mb-3">
+                <label className="form-label">Nombre</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  name="nombre"
+                  value={form.nombre}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
 
-              <div className="row g-3">
-                <div className="col-md-6">
-                  <label className="form-label">Nombre</label>
-                  <input
-                    type="text"
-                    name="nombre"
-                    className="form-control"
-                    value={form.nombre}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
+              <div className="mb-3">
+                <label className="form-label">Correo</label>
+                <input
+                  type="email"
+                  className="form-control"
+                  name="correo"
+                  value={form.correo}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
 
-                <div className="col-md-6">
-                  <label className="form-label">Correo electrónico</label>
-                  <input
-                    type="email"
-                    name="correo"
-                    className="form-control"
-                    value={form.correo}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
+              <h4 className="mt-4">Dirección</h4>
+              <div className="mb-3">
+                <label className="form-label">Calle</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  name="calle"
+                  value={form.calle}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
 
-                <div className="col-md-6">
-                  <label className="form-label">Calle</label>
-                  <input
-                    type="text"
-                    name="calle"
-                    className="form-control"
-                    value={form.calle}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-
-                <div className="col-md-6">
-                  <label className="form-label">Región</label>
-                  <input
-                    type="text"
-                    name="region"
-                    className="form-control"
-                    value={form.region}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-
-                <div className="col-md-6">
+              <div className="row">
+                <div className="col-md-6 mb-3">
                   <label className="form-label">Comuna</label>
-                  <input
-                    type="text"
+                  <select
+                    className="form-select"
                     name="comuna"
-                    className="form-control"
                     value={form.comuna}
                     onChange={handleChange}
                     required
-                  />
+                  >
+                    <option value="">Selecciona una comuna</option>
+                    {comunas.map((c) => (
+                      <option key={c} value={c}>
+                        {c}
+                      </option>
+                    ))}
+                  </select>
                 </div>
-
-                <div className="col-md-6">
-                  <label className="form-label">Depto / Casa</label>
-                  <input
-                    type="text"
-                    name="departamento"
-                    className="form-control"
-                    value={form.departamento}
+                <div className="col-md-6 mb-3">
+                  <label className="form-label">Región</label>
+                  <select
+                    className="form-select"
+                    name="region"
+                    value={form.region}
                     onChange={handleChange}
-                  />
-                </div>
-
-                <div className="col-12">
-                  <label className="form-label">Indicaciones extra</label>
-                  <textarea
-                    name="indicaciones"
-                    className="form-control"
-                    rows={3}
-                    value={form.indicaciones}
-                    onChange={handleChange}
-                  />
+                    required
+                  >
+                    <option value="">Selecciona una región</option>
+                    {regiones.map((r) => (
+                      <option key={r} value={r}>
+                        {r}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
-              <div className="mt-4 text-center">
-                <button
-                  type="submit"
-                  className="btn btn-success px-5"
-                  disabled={loading || cart.length === 0}
+              <div className="mb-3">
+                <label className="form-label">
+                  Departamento / Casa (opcional)
+                </label>
+                <input
+                  type="text"
+                  className="form-control"
+                  name="departamento"
+                  value={form.departamento}
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div className="mb-3">
+                <label className="form-label">Indicaciones (opcional)</label>
+                <textarea
+                  className="form-control"
+                  name="indicaciones"
+                  rows={2}
+                  value={form.indicaciones}
+                  onChange={handleChange}
+                />
+              </div>
+
+              <h4 className="mt-4">Método de pago</h4>
+              <div className="mb-3">
+                <select
+                  className="form-select"
+                  name="metodoPago"
+                  value={form.metodoPago}
+                  onChange={handleChange}
                 >
-                  {loading ? "Procesando..." : "Confirmar compra"}
-                </button>
+                  <option value="TARJETA">Tarjeta de crédito/débito</option>
+                  <option value="TRANSFERENCIA">Transferencia</option>
+                  <option value="EFECTIVO">Efectivo</option>
+                </select>
               </div>
+
+              <button type="submit" className="btn btn-primary w-100">
+                Confirmar compra
+              </button>
             </form>
+
+            {error && (
+              <div className="alert alert-danger mt-3 text-center">{error}</div>
+            )}
+            {success && (
+              <div className="alert alert-success mt-3 text-center">
+                {success}
+              </div>
+            )}
           </div>
         </div>
       </div>

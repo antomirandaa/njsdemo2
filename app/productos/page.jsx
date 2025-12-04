@@ -1,3 +1,4 @@
+// app/productos/page.jsx
 "use client";
 import { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
@@ -5,7 +6,7 @@ import ProductCard from "@/components/ProductCard";
 import { obtenerProductos } from "@/services/api";
 
 export default function ProductosPage() {
-  const [categoriaSeleccionada, setCategoriaSeleccionada] = useState(null);
+  const [categoriaSeleccionada, setCategoriaSeleccionada] = useState(1);
   const [productos, setProductos] = useState([]);
   const [error, setError] = useState("");
 
@@ -14,29 +15,24 @@ export default function ProductosPage() {
       try {
         setError("");
         const data = await obtenerProductos();
+        // Aquí asumimos que el backend devuelve un array de productos
         setProductos(data);
-        if (data.length > 0 && categoriaSeleccionada === null) {
-          setCategoriaSeleccionada(data[0].categoriaId || 1);
-        }
       } catch (err) {
         console.error(err);
-        setError("No se pudieron cargar los productos desde el servidor.");
+        setError("No se pudieron cargar los productos.");
       }
     };
     cargar();
-  }, [categoriaSeleccionada]);
-
-  const categorias = [
-    ...new Set(productos.map((p) => p.categoriaId || p.categoria || 1)),
-  ];
+  }, []);
 
   const productosFiltrados =
-    categoriaSeleccionada === null
-      ? productos
-      : productos.filter(
+    productos && productos.length > 0
+      ? productos.filter(
           (p) =>
-            (p.categoriaId || p.categoria || 1) === categoriaSeleccionada
-        );
+            // asumimos que el backend expone un campo categoriaId
+            (p.categoriaId || 1) === categoriaSeleccionada
+        )
+      : [];
 
   return (
     <>
@@ -51,32 +47,50 @@ export default function ProductosPage() {
 
         {/* Selector de categorías */}
         <div className="d-flex justify-content-center mb-4">
-          {categorias.map((cat) => (
+          <div className="btn-group" role="group">
             <button
-              key={cat}
               className={`btn mx-2 ${
-                categoriaSeleccionada === cat
-                  ? "btn-primary"
-                  : "btn-outline-primary"
+                categoriaSeleccionada === 1 ? "btn-primary" : "btn-outline-primary"
               }`}
-              onClick={() => setCategoriaSeleccionada(cat)}
+              onClick={() => setCategoriaSeleccionada(1)}
             >
-              Categoría {cat}
+              Peluches temáticos
             </button>
-          ))}
+            <button
+              className={`btn mx-2 ${
+                categoriaSeleccionada === 2 ? "btn-primary" : "btn-outline-primary"
+              }`}
+              onClick={() => setCategoriaSeleccionada(2)}
+            >
+              Nintendo
+            </button>
+            <button
+              className={`btn mx-2 ${
+                categoriaSeleccionada === 3 ? "btn-primary" : "btn-outline-primary"
+              }`}
+              onClick={() => setCategoriaSeleccionada(3)}
+            >
+              BTR
+            </button>
+          </div>
         </div>
 
-        {/* Grid productos */}
         <div className="row">
-          {productosFiltrados.map((producto) => (
-            <div className="col-md-4 mb-4" key={producto.id}>
-              <ProductCard producto={producto} />
-            </div>
-          ))}
-          {productosFiltrados.length === 0 && (
-            <p className="text-center">
-              No hay productos disponibles para esta categoría.
-            </p>
+          {productosFiltrados.length > 0 ? (
+            productosFiltrados.map((prod) => (
+              <div key={prod.id} className="col-6 col-md-3">
+                {/* ProductCard espera: { nombre, precio, imagen } */}
+                <ProductCard
+                  producto={{
+                    nombre: prod.nombre,
+                    precio: prod.precio,
+                    imagen: prod.imagen || "/images/placeholder.png",
+                  }}
+                />
+              </div>
+            ))
+          ) : (
+            <p className="text-center">No hay productos en esta categoría.</p>
           )}
         </div>
       </div>

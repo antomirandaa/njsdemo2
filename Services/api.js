@@ -1,24 +1,20 @@
 // services/api.js
 
-// 👉 Cambia esto si tu URL es distinta
-export const PRODUCTOS_BASE_URL =
+// URL base de tu backend en Railway
+export const API_BASE_URL =
   "https://microservicio-productos-production-544a.up.railway.app";
 
-// 👉 Cambia esto por la URL real de tu microservicio de usuarios en Railway
-export const USUARIOS_BASE_URL =
-  "https://TU-MICROSERVICIO-USUARIOS.up.railway.app"; // TODO: reemplazar
-
-// Credenciales para endpoints que piden Basic Auth (pagos, quizá otros)
+// Credenciales para endpoints que usan Basic Auth (pagos, etc.)
 const BASIC_AUTH_ADMIN = "Basic " + btoa("admin:admin123");
 
 // =============== USUARIOS =====================
 
 /**
- * Registro de usuario en el backend.
+ * Registro de usuario.
  * POST /api/v1/usuarios
  */
 export async function registrarUsuario(datos) {
-  const resp = await fetch(`${USUARIOS_BASE_URL}/api/v1/usuarios`, {
+  const resp = await fetch(`${API_BASE_URL}/api/v1/usuarios`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -31,7 +27,7 @@ export async function registrarUsuario(datos) {
     throw new Error(msg || "Error al registrar usuario");
   }
 
-  return resp.json(); // usuario creado
+  return resp.json();
 }
 
 /**
@@ -40,7 +36,7 @@ export async function registrarUsuario(datos) {
  * Body: { correo, password }
  */
 export async function loginUsuario(correo, password) {
-  const resp = await fetch(`${USUARIOS_BASE_URL}/api/v1/usuarios/login`, {
+  const resp = await fetch(`${API_BASE_URL}/api/v1/usuarios/login`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -53,17 +49,17 @@ export async function loginUsuario(correo, password) {
     throw new Error(msg || "Usuario o contraseña incorrectos");
   }
 
-  return resp.json(); // usuario logueado
+  return resp.json();
 }
 
 // =============== PRODUCTOS =====================
 
 /**
- * Obtiene la lista de productos desde el backend.
+ * Obtiene la lista de productos.
  * GET /api/v1/productos
  */
 export async function obtenerProductos() {
-  const resp = await fetch(`${PRODUCTOS_BASE_URL}/api/v1/productos`, {
+  const resp = await fetch(`${API_BASE_URL}/api/v1/productos`, {
     method: "GET",
   });
 
@@ -74,28 +70,24 @@ export async function obtenerProductos() {
   return resp.json();
 }
 
-// =============== PAGOS / BOLETAS ===============
+// =============== PAGOS =====================
 
 /**
- * Crea un pago/boleta en el microservicio de pagos.
+ * Crea un pago/boleta.
  * POST /api/v1/pagos
  *
- * @param usuarioId  ID del usuario (del backend)
- * @param metodoPago "TARJETA", "TRANSFERENCIA", etc.
- * @param items      [{ productoId, cantidad, precioUnitario }]
+ * @param {number} usuarioId
+ * @param {string} metodoPago
+ * @param {Array<{ productoId:number, cantidad:number, precioUnitario:number }>} items
  */
 export async function crearPago(usuarioId, metodoPago, items) {
-  const payload = {
-    usuarioId,
-    metodoPago,
-    items,
-  };
+  const payload = { usuarioId, metodoPago, items };
 
-  const resp = await fetch(`${PRODUCTOS_BASE_URL}/api/v1/pagos`, {
+  const resp = await fetch(`${API_BASE_URL}/api/v1/pagos`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: BASIC_AUTH_ADMIN, // backend de pagos pide Basic Auth
+      Authorization: BASIC_AUTH_ADMIN,
     },
     body: JSON.stringify(payload),
   });
@@ -105,5 +97,5 @@ export async function crearPago(usuarioId, metodoPago, items) {
     throw new Error(msg || "Error al registrar el pago");
   }
 
-  return resp.json(); // boleta creada
+  return resp.json();
 }
